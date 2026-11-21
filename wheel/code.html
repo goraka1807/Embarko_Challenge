@@ -704,5 +704,41 @@
     })();
   </script>
   <script src="../screen-bridge.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const destinationMap = {
+      ARMOURY: 'armoury',
+      WORKBENCH: 'mark_v',
+      FLIGHT: 'flight',
+      VISOR: 'visor'
+    };
+
+    document.querySelectorAll('.cardinal-node').forEach((node) => {
+      node.addEventListener('click', () => {
+        const action = node.dataset.action;
+        const destination = destinationMap[action];
+        if (destination && window.JarvisBridge) {
+          setTimeout(() => {
+            window.JarvisBridge.navigate(destination, { destination, from: 'wheel' });
+          }, 650);
+        }
+      });
+    });
+
+    const navLinks = document.querySelectorAll('nav a');
+    navLinks.forEach((link) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        const label = (link.getAttribute('aria-label') || '').toLowerCase();
+        if (!window.JarvisBridge) return;
+        if (label === 'home') window.JarvisBridge.navigate('wheel', { destination: 'wheel' });
+        if (label === 'armoury') window.JarvisBridge.navigate('armoury', { destination: 'armoury' });
+        if (label === 'workbench') window.JarvisBridge.navigate('mark_v', { destination: 'workbench' });
+        if (label === 'flight') window.JarvisBridge.navigate('flight', { destination: 'flight' });
+        if (label === 'visor') window.JarvisBridge.navigate('visor', { destination: 'visor' });
+      });
+    });
+  });
+</script>
 
 </body></html>

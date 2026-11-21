@@ -6,7 +6,13 @@
 
   const routes = {
     start: 'start/code.html',
-    wheel: 'wheel/code.html'
+    wheel: 'wheel/code.html',
+    armory: 'armory/code.html',
+    mark_i: 'mark_i/code.html',
+    mark_v: 'mark_v/code.html',
+    hulk_buster: 'hulk_buster/code.html',
+    flight: 'flight/code.html',
+    visor: 'visor/code.html'
   };
 
   let activeFrame = null;
@@ -88,9 +94,43 @@
       navigate('wheel', message.payload || {});
     }
 
+    if (message.type === 'SELECT_SUIT') {
+      const suit = String(message.payload?.suit || '').toLowerCase().replace(/[^a-z0-9]+/g, '_');
+      const suitRoutes = {
+        mark_i: 'mark_i',
+        mark_i_suit: 'mark_i',
+        mark_v: 'mark_v',
+        mark_v_suit: 'mark_v',
+        hulkbuster: 'hulk_buster',
+        hulk_buster: 'hulk_buster',
+        hulk_buster_suit: 'hulk_buster',
+        hulkbuster_mk_xliv: 'hulk_buster'
+      };
+      const route = suitRoutes[suit];
+      if (route) navigate(route, { selectedSuit: message.payload?.suit });
+    }
+
     if (message.type === 'NAVIGATE_REQUEST') {
-      const destination = String(message.payload?.destination || '').toLowerCase();
-      if (destination === 'wheel' || destination === 'home') navigate('wheel', message.payload);
+      const destination = String(message.payload?.destination || '').toLowerCase().replace(/[^a-z0-9]+/g, '_');
+      const destinationRoutes = {
+        wheel: 'wheel',
+        home: 'wheel',
+        command: 'wheel',
+        armory: 'armory',
+        armoury: 'armory',
+        workbench: 'mark_v',
+        mark_i: 'mark_i',
+        mark_i_workbench: 'mark_i',
+        mark_v: 'mark_v',
+        mark_v_workbench: 'mark_v',
+        hulkbuster: 'hulk_buster',
+        hulk_buster: 'hulk_buster',
+        hulkbuster_workbench: 'hulk_buster',
+        flight: 'flight',
+        visor: 'visor'
+      };
+      const route = destinationRoutes[destination];
+      if (route) navigate(route, message.payload);
     }
 
     if (message.type === 'ABORT_REQUEST') {
