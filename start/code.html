@@ -1,0 +1,949 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
+<meta content="mobile_blank" name="shell-type">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=Sora:wght@400;500;700&amp;family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@300;400;500;600;700&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {darkMode: "class", theme: {extend: {colors: {surface: "#051424", background: "#051424", primary: "#c3f5ff", "primary-container": "#00e5ff", secondary: "#7bd0ff", "on-surface": "#d4e4fa", "on-surface-variant": "#bac9cc", "surface-container-low": "#0d1c2d", "secondary-fixed-dim": "#7bd0ff", "on-primary-container": "#00626e", "on-primary": "#00363d", "surface-bright": "#2c3a4c", "inverse-surface": "#d4e4fa", "surface-container-high": "#1c2b3c", "surface-container": "#122131", "on-tertiary-fixed-variant": "#653e00", "surface-tint": "#00daf3", "tertiary-fixed-dim": "#ffb95f", "primary-fixed": "#9cf0ff", "on-error": "#690005", outline: "#849396", "surface-variant": "#273647", "tertiary-fixed": "#ffddb8", "inverse-primary": "#006875", "secondary-container": "#00a6e0", "on-error-container": "#ffdad6", "on-secondary-fixed-variant": "#004c69", "on-tertiary-container": "#7e4e00", "secondary-fixed": "#c4e7ff", "on-tertiary": "#472a00", tertiary: "#ffe9d3", "on-secondary": "#00354a", "tertiary-container": "#ffc681", "on-primary-fixed-variant": "#004f58", "primary-fixed-dim": "#00daf3", "on-primary-fixed": "#001f24", "on-secondary-container": "#00374d", "on-secondary-fixed": "#001e2c", "error-container": "#93000a", error: "#ffb4ab", "surface-container-highest": "#273647", "outline-variant": "#3b494c", "surface-container-lowest": "#010f1f", "on-background": "#d4e4fa", "on-tertiary-fixed": "#2a1700", "inverse-on-surface": "#233143", "surface-dim": "#051424"}, fontFamily: {label: ["Inter"], headline: ["Space Grotesk"], body: ["Sora"], display: ["Space Grotesk"]}, fontSize: {}, borderRadius: {DEFAULT: "1rem", lg: "2rem", xl: "3rem", full: "9999px"}}}}
+  </script>
+<style>
+    @layer base {
+      html, body {
+        width: 100vw;
+        height: 100%;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+        background-color: #020508;
+        overscroll-behavior: none;
+      }
+      .pb-safe { padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px); }
+      .pt-safe { padding-top: max(env(safe-area-inset-top, 0px), 14px); }
+    }
+    body {
+      min-height: max(884px, 100dvh);
+    }
+    
+    /* Machined Vignette & Brushed Subtle Background */
+    .radial-vignette {
+      background: radial-gradient(circle at 50% 50%, rgba(6, 15, 26, 0.45) 0%, rgba(2, 5, 8, 0.95) 75%, #010305 100%);
+    }
+
+    /* Shockwave keyframes */
+    @keyframes shockwave {
+      0% {
+        transform: translate(-50%, -50%) scale(0.9);
+        opacity: 0.95;
+        border-color: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 0 25px rgba(0, 240, 255, 0.8), inset 0 0 15px rgba(255, 255, 255, 0.6);
+      }
+      60% {
+        opacity: 0.6;
+        border-color: rgba(0, 229, 255, 0.7);
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1.85);
+        opacity: 0;
+        border-color: rgba(0, 229, 255, 0);
+        box-shadow: 0 0 50px rgba(0, 229, 255, 0);
+      }
+    }
+
+    .shockwave-active {
+      animation: shockwave 1.15s cubic-bezier(0.12, 0.8, 0.22, 1) forwards;
+    }
+
+    /* Core Micro Filament Pulsing */
+    @keyframes seedPulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(0.94); opacity: 0.35; filter: drop-shadow(0 0 4px #00daf3); }
+      50% { transform: translate(-50%, -50%) scale(1.08); opacity: 0.85; filter: drop-shadow(0 0 12px #00f0ff); }
+    }
+    
+    .seed-filament-pulse {
+      animation: seedPulse 2.8s ease-in-out infinite;
+    }
+
+    /* Progress Ring Circumference (r=148 => C ~ 929.9) */
+    .progress-circle {
+      stroke-dasharray: 930;
+      stroke-dashoffset: 930;
+      transition: stroke-dashoffset 0.12s linear;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>.material-symbols-outlined, .material-icons { font-family: 'Material Symbols Outlined' !important; font-weight: normal; font-style: normal; line-height: 1; text-transform: none; letter-spacing: normal; word-wrap: normal; white-space: nowrap; direction: ltr; -webkit-font-smoothing: antialiased; display: inline-block; }</style></head>
+<body class="bg-[#020508] text-on-surface font-body flex flex-col min-h-screen relative selection:bg-cyan-500/20 selection:text-cyan-200 select-none overflow-hidden radial-vignette cursor-pointer" id="masterBody">
+<!-- Ambient Cinematic Deep Vignette Layer -->
+<div class="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,rgba(0,180,216,0.04)_0%,rgba(2,5,8,0.92)_70%)]"></div>
+<!-- Specular chassis rim flash overlay -->
+<div class="pointer-events-none absolute inset-0 z-10 transition-opacity duration-150 opacity-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,240,255,0.09)_0%,transparent_60%)]" id="specularFlashes" style="opacity: 0;"></div>
+<!-- Audio State & Mute Toggle (Floating Top Right discretely) -->
+<button class="absolute top-5 right-5 z-40 p-2.5 text-neutral-500 hover:text-cyan-300 transition-colors focus:outline-none flex items-center space-x-1 rounded-full border border-transparent hover:border-neutral-800" id="soundToggle" title="Toggle Synthesized Audio">
+<span class="material-symbols-outlined text-[17px] opacity-75" id="soundIcon">volume_off</span>
+</button>
+<main class="flex flex-col flex-1 justify-between items-center w-full min-h-screen pt-safe pb-safe px-6 relative z-10">
+<!-- Center Stage: Multi-layered Precision Arc Reactor -->
+<div class="flex flex-col items-center justify-center my-auto relative w-full max-w-[340px]">
+<!-- Controlled Ambient Bloom (Reactive to boot sequence) -->
+<div class="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[390px] h-[390px] rounded-full bg-cyan-400/35 blur-[120px] transition-all duration-700" id="ambientGlow"></div>
+<!-- Shockwave Ripple Ring (Fires on 100% Online) -->
+<div class="pointer-events-none absolute top-1/2 left-1/2 w-[290px] h-[290px] rounded-full border border-cyan-300 opacity-0 z-30 shockwave-active" id="shockwaveRing"></div>
+<!-- Master Interactive Reactor Assembly -->
+<div aria-label="Engage Arc Reactor Boot Sequence" class="group relative w-[296px] h-[296px] flex items-center justify-center cursor-pointer transition-transform duration-700 active:scale-[0.985]" id="reactorAssembly" role="button">
+<!-- Ultra-thin Sleek Circular Charging Progress SVG -->
+<svg class="absolute inset-0 w-full h-full -rotate-90 pointer-events-none z-30" viewBox="0 0 300 300">
+<circle class="stroke-neutral-900/60" cx="150" cy="150" fill="none" r="148" stroke-width="1.2"></circle>
+<circle class="progress-circle drop-shadow-[0_0_6px_rgba(0,229,255,0.6)] stroke-cyan-300 drop-shadow-[0_0_8px_rgba(0,229,255,0.8)]" cx="150" cy="150" fill="none" id="chargingProgressRing" r="148" stroke-linecap="round" stroke-width="1.5" style="stroke-dasharray: 929.9; stroke-dashoffset: 0;"></circle>
+</svg>
+<!-- Outer Milled Titanium Casing Ring with Machined Chamfers -->
+<div class="absolute inset-[4px] rounded-full border border-neutral-700/60 bg-gradient-to-b from-[#182029]/80 via-[#0d1319]/90 to-[#080d12] shadow-[inset_0_1px_2px_rgba(255,255,255,0.08),0_12px_32px_rgba(0,0,0,0.9)] pointer-events-none transition-colors duration-700" id="outerTitaniumBezel">
+<!-- Radial Segment Marks (12 Machined Precision Apertures) -->
+<div class="absolute inset-0 rounded-full flex items-center justify-center pointer-events-none">
+<div class="w-full h-[1px] bg-neutral-800/80"></div>
+<div class="absolute w-[1px] h-full bg-neutral-800/80"></div>
+<div class="w-full h-[1px] bg-neutral-800/80 rotate-30"></div>
+<div class="w-full h-[1px] bg-neutral-800/80 rotate-60"></div>
+<div class="w-full h-[1px] bg-neutral-800/80 -rotate-30"></div>
+<div class="w-full h-[1px] bg-neutral-800/80 -rotate-60"></div>
+</div>
+<!-- Hairline Inset Shadow Ring -->
+<div class="absolute inset-[3px] rounded-full border border-neutral-800/80"></div>
+</div>
+<!-- Magnetic Containment Field Glow (Subtle Inset) -->
+<div class="absolute inset-[10px] rounded-full pointer-events-none border border-cyan-400/0 opacity-0 transition-all duration-700 shadow-[inset_0_0_20px_rgba(0,229,255,0.25)]" id="containmentField" style="opacity: 1;"></div>
+<!-- Core Component: Arc Reactor Image with Optical Depth Mask -->
+<div class="relative w-[272px] h-[272px] rounded-full overflow-hidden flex items-center justify-center shadow-[inset_0_0_35px_rgba(2,5,8,0.95)]" id="coreContainer" style="transform: translate(0px, 0px);">
+<!-- High Fidelity Arc Reactor Visual Source -->
+<img class="w-full h-full object-cover object-center rounded-full scale-[1.33] transition-all duration-500 ease-out select-none pointer-events-none filter brightness-[0.45] contrast-[1.15]" data-alt="Iron Man Arc Reactor Core" id="reactorImg" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAfE8kUMWY69NW0I4BFJ6xd8S5Lr_uO0Ek1ToFao7RlSji8np2T0qtm5YrWbk8S-U9qT1IKr7a4Y8wKlJgGZPGWBy6IFqiiNvTwlN3SUe3i-y7WXr11pTmcd7_GESfJFmGwEOENVhxIn3YuK31E1baNE-9RAr3HJK7yH45axHZFoBBu7VRPlMqno5CSeDEBkQReuJEkZacAGR8bM5m6YEL-VfpE1f1fuEmmfgkrDhR5gTmhWfW1TNV" style="filter: brightness(1.5) contrast(1.42); transform: scale(1.42);">
+<!-- Plasma Discharge / Crystalline Overdrive Core Layer -->
+<div class="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-400/0 via-cyan-300/0 to-white/0 opacity-0 transition-opacity duration-500 pointer-events-none mix-blend-screen" id="plasmaCore" style="opacity: 0.95;"></div>
+<!-- Central Refraction Iris Ring Overlay -->
+<div class="absolute inset-[26%] rounded-full bg-cyan-400/0 pointer-events-none transition-all duration-500 blur-[10px]" id="irisAura" style="background-color: rgba(224, 255, 255, 0.95);"></div>
+<!-- Deep Center Seed Spark / Filament (Alive even when dormant) -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-cyan-300 pointer-events-none seed-filament-pulse z-20" id="centerSeedFilament" style="box-shadow: rgba(0, 229, 255, 0.8) 0px 0px 10px, rgb(255, 255, 255) 0px 0px 3px inset; opacity: 0.799424;"></div>
+<!-- Vignette Edge Shadow for Metallic Cavity Realism -->
+<div class="absolute inset-0 rounded-full pointer-events-none shadow-[inset_0_0_28px_rgba(2,5,8,0.92)] border border-neutral-800/40"></div>
+<!-- Subtle Touch / High-voltage Specular Flash -->
+<div class="absolute inset-0 rounded-full pointer-events-none transition-opacity duration-150 bg-cyan-300/0" id="pulseFlash" style="opacity: 0;"></div>
+</div>
+<!-- HIGH-VOLTAGE DYNAMIC ELECTRICAL DISCHARGE CANVAS LAYER -->
+<canvas class="absolute inset-0 w-[296px] h-[296px] pointer-events-none z-25" height="592" id="fxCanvas" width="592"></canvas>
+<!-- Perimeter Micro Chamfer Indicators (Automotive Grade Tick Marks) -->
+<div class="absolute -top-1.5 w-[1px] h-3 bg-neutral-700 transition-colors duration-500" id="tickT" style="background-color: rgb(0, 229, 255);"></div>
+<div class="absolute -bottom-1.5 w-[1px] h-3 bg-neutral-700 transition-colors duration-500" id="tickB" style="background-color: rgb(0, 229, 255);"></div>
+<div class="absolute -left-1.5 h-[1px] w-3 bg-neutral-700 transition-colors duration-500" id="tickL" style="background-color: rgb(0, 229, 255);"></div>
+<div class="absolute -right-1.5 h-[1px] w-3 bg-neutral-700 transition-colors duration-500" id="tickR" style="background-color: rgb(0, 229, 255);"></div>
+</div>
+<!-- Telemetry Sub-State Prompt & Numerical Readout -->
+<div class="mt-9 flex flex-col items-center space-y-2 text-center">
+<!-- Sequence Phase Status Label -->
+<div class="text-[11px] font-label font-bold uppercase tracking-[0.36em] text-cyan-200 drop-shadow-[0_0_12px_rgba(0,229,255,0.7)] transition-colors duration-500" id="statusLabel">REACTOR ONLINE</div>
+<!-- Precise Numerical Output -->
+<div class="flex items-center space-x-2 text-[10px] font-label tracking-[0.2em] text-neutral-500">
+<span class="text-neutral-400 font-semibold transition-colors duration-300" id="chargePercentage">100.0%</span>
+<span class="text-neutral-700">//</span>
+<span class="text-cyan-300/80 transition-colors duration-300 tracking-[0.2em] text-[9px]" id="subPrompt">SYSTEM NOMINAL // TAP TO DISCHARGE</span>
+</div>
+</div>
+</div>
+<!-- Bottom Minimal Footer & Transition Indicator to Screen 02 -->
+<footer class="w-full pb-2 px-2 flex flex-col items-center space-y-4">
+<!-- Subtle Visual Accent Divider Line -->
+<div class="h-[1px] w-10 bg-neutral-800/90"></div>
+<!-- J.A.R.V.I.S Wordmark & System Architecture -->
+<div class="flex items-center space-x-3 text-[10px] font-label uppercase tracking-[0.28em] text-neutral-500">
+<span class="text-neutral-300 font-medium">J.A.R.V.I.S.</span>
+<span class="text-neutral-700">|</span>
+<span class="text-neutral-500 text-[9px] tracking-[0.22em]" id="sysArchitecture">MK-LXXXV HYBRID OS</span>
+</div>
+<!-- Navigation Transition Prompt Hint to Screen 02 -->
+<div class="transition-opacity duration-700 flex items-center space-x-1.5 text-[9px] font-label tracking-[0.25em] text-cyan-400/80 cursor-pointer pt-0.5 opacity-100" id="nextScreenPrompt">
+<span>PROCEED TO HUD INTERFACE</span>
+<span class="material-symbols-outlined text-[13px] animate-pulse">arrow_forward</span>
+</div>
+</footer>
+</main>
+<script>
+(function() {
+  // DOM Elements
+  const masterBody = document.getElementById('masterBody');
+  const reactorAssembly = document.getElementById('reactorAssembly');
+  const coreContainer = document.getElementById('coreContainer');
+  const reactorImg = document.getElementById('reactorImg');
+  const plasmaCore = document.getElementById('plasmaCore');
+  const irisAura = document.getElementById('irisAura');
+  const ambientGlow = document.getElementById('ambientGlow');
+  const containmentField = document.getElementById('containmentField');
+  const pulseFlash = document.getElementById('pulseFlash');
+  const shockwaveRing = document.getElementById('shockwaveRing');
+  const progressRing = document.getElementById('chargingProgressRing');
+  const statusLabel = document.getElementById('statusLabel');
+  const chargePercentage = document.getElementById('chargePercentage');
+  const subPrompt = document.getElementById('subPrompt');
+  const nextScreenPrompt = document.getElementById('nextScreenPrompt');
+  const soundToggle = document.getElementById('soundToggle');
+  const soundIcon = document.getElementById('soundIcon');
+  const specularFlashes = document.getElementById('specularFlashes');
+  const centerSeedFilament = document.getElementById('centerSeedFilament');
+
+  const tickT = document.getElementById('tickT');
+  const tickB = document.getElementById('tickB');
+  const tickL = document.getElementById('tickL');
+  const tickR = document.getElementById('tickR');
+
+  // Canvas Setup
+  const canvas = document.getElementById('fxCanvas');
+  const ctx = canvas.getContext('2d');
+  const C_WIDTH = 592;
+  const C_HEIGHT = 592;
+  const CENTER = { x: C_WIDTH / 2, y: C_HEIGHT / 2 };
+
+  // Circumference for r=148
+  const CIRCUMFERENCE = 929.9;
+  progressRing.style.strokeDasharray = `${CIRCUMFERENCE}`;
+  progressRing.style.strokeDashoffset = `${CIRCUMFERENCE}`;
+
+  // Procedural Web Audio Engine
+  let audioCtx = null;
+  let soundEnabled = false;
+
+  // Audio Node references
+  let droneOsc = null;
+  let droneGain = null;
+  let buzzOsc = null;
+  let buzzFilter = null;
+  let buzzGain = null;
+  let rumbleOsc = null;
+  let rumbleGain = null;
+
+  function initAudio() {
+    if (!audioCtx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) {
+        audioCtx = new AudioContext();
+        setupContinuousSynthesizers();
+      }
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  }
+
+  function setupContinuousSynthesizers() {
+    try {
+      // 1. Ultra-deep low room drone (30-40Hz)
+      droneOsc = audioCtx.createOscillator();
+      droneGain = audioCtx.createGain();
+      droneOsc.type = 'sine';
+      droneOsc.frequency.setValueAtTime(36, audioCtx.currentTime);
+      droneGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      droneOsc.connect(droneGain);
+      droneGain.connect(audioCtx.destination);
+      droneOsc.start();
+
+      // 2. High-voltage transformer buzz (60Hz / 120Hz harmonics + bandpass)
+      buzzOsc = audioCtx.createOscillator();
+      buzzFilter = audioCtx.createBiquadFilter();
+      buzzGain = audioCtx.createGain();
+      buzzOsc.type = 'sawtooth';
+      buzzOsc.frequency.setValueAtTime(120, audioCtx.currentTime);
+
+      buzzFilter.type = 'bandpass';
+      buzzFilter.frequency.setValueAtTime(850, audioCtx.currentTime);
+      buzzFilter.Q.setValueAtTime(3.5, audioCtx.currentTime);
+
+      buzzGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+
+      buzzOsc.connect(buzzFilter);
+      buzzFilter.connect(buzzGain);
+      buzzGain.connect(audioCtx.destination);
+      buzzOsc.start();
+
+      // 3. Power-up pitch rumble
+      rumbleOsc = audioCtx.createOscillator();
+      rumbleGain = audioCtx.createGain();
+      rumbleOsc.type = 'triangle';
+      rumbleOsc.frequency.setValueAtTime(45, audioCtx.currentTime);
+      rumbleGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      rumbleOsc.connect(rumbleGain);
+      rumbleGain.connect(audioCtx.destination);
+      rumbleOsc.start();
+    } catch (e) {
+      console.warn("Synth init exception:", e);
+    }
+  }
+
+  // Electrical spark zap sound (filtered white noise burst + snap)
+  function playElectricZap(intensity = 1.0) {
+    if (!soundEnabled || !audioCtx) return;
+    try {
+      const now = audioCtx.currentTime;
+      const bufferSize = audioCtx.sampleRate * 0.055;
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+
+      const whiteNoise = audioCtx.createBufferSource();
+      whiteNoise.buffer = buffer;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(2200 + Math.random() * 3200, now);
+      filter.Q.setValueAtTime(4.0, now);
+
+      const gain = audioCtx.createGain();
+      const vol = Math.min(0.24, 0.04 + intensity * 0.18);
+      gain.gain.setValueAtTime(vol, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
+
+      whiteNoise.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      whiteNoise.start(now);
+
+      // Micro tone snap
+      const snapOsc = audioCtx.createOscillator();
+      const snapGain = audioCtx.createGain();
+      snapOsc.type = 'sawtooth';
+      snapOsc.frequency.setValueAtTime(600 + Math.random() * 800, now);
+      snapOsc.frequency.exponentialRampToValueAtTime(140, now + 0.035);
+
+      snapGain.gain.setValueAtTime(vol * 0.8, now);
+      snapGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
+
+      snapOsc.connect(snapGain);
+      snapGain.connect(audioCtx.destination);
+      snapOsc.start(now);
+      snapOsc.stop(now + 0.04);
+    } catch (e) {}
+  }
+
+  // Sub-bass heavy impact drop at stage 5/6
+  function playSubBassImpact() {
+    if (!soundEnabled || !audioCtx) return;
+    try {
+      const now = audioCtx.currentTime;
+      const sub = audioCtx.createOscillator();
+      const subG = audioCtx.createGain();
+
+      sub.type = 'sine';
+      sub.frequency.setValueAtTime(140, now);
+      sub.frequency.exponentialRampToValueAtTime(32, now + 0.7);
+
+      subG.gain.setValueAtTime(0.35, now);
+      subG.gain.exponentialRampToValueAtTime(0.0001, now + 0.85);
+
+      sub.connect(subG);
+      subG.connect(audioCtx.destination);
+      sub.start(now);
+      sub.stop(now + 0.9);
+    } catch (e) {}
+  }
+
+  // Harmonic chord stabilization
+  function playHarmonicChord() {
+    if (!soundEnabled || !audioCtx) return;
+    try {
+      const now = audioCtx.currentTime;
+      const freqs = [220, 277.18, 329.63, 440, 659.25];
+      freqs.forEach((f, i) => {
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, now);
+
+        g.gain.setValueAtTime(0.001, now);
+        g.gain.linearRampToValueAtTime(0.035 / freqs.length, now + 0.25 + i * 0.05);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 2.8);
+
+        osc.connect(g);
+        g.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 2.9);
+      });
+    } catch (e) {}
+  }
+
+  // Continuous soundscape updater based on charge percentage
+  function updateSoundscape(pct) {
+    if (!soundEnabled || !audioCtx || !droneGain) return;
+    const now = audioCtx.currentTime;
+
+    if (pct <= 0) {
+      droneGain.gain.setTargetAtTime(0.0001, now, 0.1);
+      buzzGain.gain.setTargetAtTime(0.0001, now, 0.1);
+      rumbleGain.gain.setTargetAtTime(0.0001, now, 0.1);
+      return;
+    }
+
+    // 0-20% Room drone
+    if (pct < 20) {
+      droneGain.gain.setTargetAtTime(0.06, now, 0.2);
+      buzzGain.gain.setTargetAtTime(0.002, now, 0.2);
+      rumbleGain.gain.setTargetAtTime(0.0001, now, 0.2);
+    } 
+    // 20-40% Faint 120Hz hum + micro buzz
+    else if (pct >= 20 && pct < 40) {
+      droneGain.gain.setTargetAtTime(0.07, now, 0.2);
+      buzzGain.gain.setTargetAtTime(0.025, now, 0.15);
+      buzzOsc.frequency.setTargetAtTime(120 + (pct - 20) * 1.5, now, 0.2);
+      rumbleGain.gain.setTargetAtTime(0.015, now, 0.2);
+    }
+    // 40-60% Rising pitch rumble + magnetic coil resonance
+    else if (pct >= 40 && pct < 60) {
+      droneGain.gain.setTargetAtTime(0.09, now, 0.2);
+      buzzGain.gain.setTargetAtTime(0.055, now, 0.15);
+      buzzOsc.frequency.setTargetAtTime(150 + (pct - 40) * 4, now, 0.2);
+      rumbleGain.gain.setTargetAtTime(0.045, now, 0.15);
+      rumbleOsc.frequency.setTargetAtTime(45 + (pct - 40) * 2.5, now, 0.2);
+    }
+    // 60-80% High energy transformer drone
+    else if (pct >= 60 && pct < 80) {
+      droneGain.gain.setTargetAtTime(0.11, now, 0.15);
+      buzzGain.gain.setTargetAtTime(0.085, now, 0.1);
+      buzzOsc.frequency.setTargetAtTime(230 + (pct - 60) * 6, now, 0.1);
+      rumbleGain.gain.setTargetAtTime(0.07, now, 0.1);
+      rumbleOsc.frequency.setTargetAtTime(95 + (pct - 60) * 3, now, 0.1);
+    }
+    // 80-100% Maximum surge
+    else if (pct >= 80 && pct < 100) {
+      droneGain.gain.setTargetAtTime(0.14, now, 0.1);
+      buzzGain.gain.setTargetAtTime(0.11, now, 0.08);
+      buzzOsc.frequency.setTargetAtTime(350 + (pct - 80) * 8, now, 0.08);
+      rumbleGain.gain.setTargetAtTime(0.09, now, 0.08);
+    }
+    // 100% Steady clean plasma hum
+    else if (pct >= 100) {
+      droneGain.gain.setTargetAtTime(0.08, now, 0.3);
+      buzzGain.gain.setTargetAtTime(0.015, now, 0.3);
+      buzzOsc.frequency.setTargetAtTime(180, now, 0.4);
+      rumbleGain.gain.setTargetAtTime(0.02, now, 0.3);
+      rumbleOsc.frequency.setTargetAtTime(60, now, 0.4);
+    }
+  }
+
+  // Audio Toggle Handling
+  soundToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    initAudio();
+    soundEnabled = !soundEnabled;
+    soundIcon.textContent = soundEnabled ? 'volume_up' : 'volume_off';
+    soundToggle.classList.toggle('text-cyan-400', soundEnabled);
+    soundToggle.classList.toggle('text-neutral-500', !soundEnabled);
+    if (soundEnabled) {
+      updateSoundscape(currentProgress);
+      playElectricZap(0.4);
+    } else {
+      updateSoundscape(0);
+    }
+  });
+
+  // Global first click unblocks web audio context quietly
+  window.addEventListener('click', () => {
+    initAudio();
+  }, { once: true });
+
+  // -------------------------------------------------------------
+  // ELECTRICAL ARCS & SPARK PARTICLES SIMULATION
+  // -------------------------------------------------------------
+  const particles = [];
+  const activeArcs = [];
+  let plasmaPulseAngle = 0;
+
+  // Concentric radii of the reactor hardware
+  const RADIUS_IRIS = 74;      // Inner iris edge
+  const RADIUS_INNER_RING = 120; // Concentric mid channel
+  const RADIUS_COILS = 188;     // Copper solenoid coils circle
+  const RADIUS_OUTER = 252;     // Outer milled titanium rim
+
+  class SparkParticle {
+    constructor(x, y, vx, vy, life, color) {
+      this.x = x;
+      this.y = y;
+      this.vx = vx;
+      this.vy = vy;
+      this.life = life;
+      this.maxLife = life;
+      this.color = color || '#00f0ff';
+      this.size = Math.random() * 2 + 1;
+    }
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.vx *= 0.95;
+      this.vy *= 0.95;
+      this.life--;
+    }
+    draw(ctx) {
+      const alpha = Math.max(0, this.life / this.maxLife);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = this.color;
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function spawnSparksOutward(count, minR, maxR, power = 1.0) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const r = minR + Math.random() * (maxR - minR);
+      const px = CENTER.x + Math.cos(angle) * r;
+      const py = CENTER.y + Math.sin(angle) * r;
+
+      const speed = (2.5 + Math.random() * 5.5) * power;
+      const spread = (Math.random() - 0.5) * 0.7;
+      const vx = Math.cos(angle + spread) * speed;
+      const vy = Math.sin(angle + spread) * speed;
+
+      const color = Math.random() > 0.45 ? '#ffffff' : '#00f0ff';
+      particles.push(new SparkParticle(px, py, vx, vy, 18 + Math.random() * 24, color));
+    }
+  }
+
+  function createBranchingArc(x1, y1, x2, y2, displace, depth) {
+    if (depth === 0) {
+      return [{ x: x1, y: y1 }, { x: x2, y: y2 }];
+    }
+    const midX = (x1 + x2) / 2 + (Math.random() - 0.5) * displace;
+    const midY = (y1 + y2) / 2 + (Math.random() - 0.5) * displace;
+    const left = createBranchingArc(x1, y1, midX, midY, displace * 0.52, depth - 1);
+    const right = createBranchingArc(midX, midY, x2, y2, displace * 0.52, depth - 1);
+    return left.concat(right.slice(1));
+  }
+
+  function triggerArcDischarge(stage) {
+    let rStart, rEnd;
+    if (stage === 1) { // 20-40% Faint micro-arcs at seed/iris
+      rStart = RADIUS_IRIS * 0.3;
+      rEnd = RADIUS_IRIS * (0.9 + Math.random() * 0.4);
+    } else if (stage === 2) { // 40-60% Arcs jump between inner rings & coils
+      rStart = RADIUS_IRIS * (0.8 + Math.random() * 0.4);
+      rEnd = RADIUS_COILS * (0.85 + Math.random() * 0.25);
+    } else if (stage === 3) { // 60-80% Violent arcs across multiple coils & outer rim
+      rStart = RADIUS_INNER_RING * (0.7 + Math.random() * 0.4);
+      rEnd = RADIUS_OUTER * (0.9 + Math.random() * 0.2);
+    } else { // 80-100% Intense web
+      rStart = (Math.random() > 0.5 ? RADIUS_IRIS : RADIUS_INNER_RING) * Math.random();
+      rEnd = RADIUS_OUTER * (0.85 + Math.random() * 0.25);
+    }
+
+    const angle1 = Math.random() * Math.PI * 2;
+    const angleOffset = (Math.random() - 0.5) * 1.2;
+    const angle2 = angle1 + angleOffset;
+
+    const x1 = CENTER.x + Math.cos(angle1) * rStart;
+    const y1 = CENTER.y + Math.sin(angle1) * rStart;
+    const x2 = CENTER.x + Math.cos(angle2) * rEnd;
+    const y2 = CENTER.y + Math.sin(angle2) * rEnd;
+
+    const points = createBranchingArc(x1, y1, x2, y2, 28 + stage * 10, 4);
+    activeArcs.push({
+      points: points,
+      life: 3 + Math.floor(Math.random() * 4),
+      maxLife: 6,
+      width: stage >= 3 ? 2.2 : 1.4,
+      color: Math.random() > 0.35 ? '#ffffff' : '#00f0ff'
+    });
+
+    // Flash chassis bevel specularly on heavy arcs
+    if (stage >= 2 && Math.random() > 0.35) {
+      specularFlashes.style.opacity = (0.25 + stage * 0.2).toString();
+      setTimeout(() => { specularFlashes.style.opacity = '0'; }, 55);
+    }
+
+    // Audio zap trigger
+    playElectricZap(0.3 + stage * 0.25);
+  }
+
+  // Visual Jitter / Electric Micro-Flicker during escalation
+  function applyElectricJitter(severity) {
+    if (severity <= 0) {
+      coreContainer.style.transform = 'translate(0px, 0px)';
+      return;
+    }
+    const jx = (Math.random() - 0.5) * severity * 2.5;
+    const jy = (Math.random() - 0.5) * severity * 2.5;
+    coreContainer.style.transform = `translate(${jx}px, ${jy}px)`;
+  }
+
+  // Animation Loop for Canvas FX (Arcs, Sparks, Circular Plasma Filament)
+  function renderFX() {
+    ctx.clearRect(0, 0, C_WIDTH, C_HEIGHT);
+
+    // 1. Revolving Plasma Filament Pulses along circular channels (Stages 40-100%)
+    if (currentProgress >= 30) {
+      const speed = 0.04 + (currentProgress / 100) * 0.14;
+      plasmaPulseAngle += speed;
+      const alphaPulse = Math.min(0.9, (currentProgress - 30) / 45);
+
+      ctx.save();
+      ctx.lineWidth = currentProgress > 75 ? 3.5 : 2;
+      ctx.strokeStyle = '#00f0ff';
+      ctx.shadowColor = '#00e5ff';
+      ctx.shadowBlur = 12;
+      ctx.globalAlpha = alphaPulse * (0.55 + Math.sin(Date.now() * 0.01) * 0.25);
+
+      ctx.beginPath();
+      ctx.arc(CENTER.x, CENTER.y, RADIUS_INNER_RING, plasmaPulseAngle, plasmaPulseAngle + 1.2);
+      ctx.stroke();
+
+      if (currentProgress >= 60) {
+        ctx.beginPath();
+        ctx.strokeStyle = '#ffffff';
+        ctx.arc(CENTER.x, CENTER.y, RADIUS_COILS * 0.96, -plasmaPulseAngle * 1.3, -plasmaPulseAngle * 1.3 + 0.9);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // 2. Active Branching Electrical Arcs
+    for (let i = activeArcs.length - 1; i >= 0; i--) {
+      const arc = activeArcs[i];
+      const pts = arc.points;
+      if (pts.length > 1) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let j = 1; j < pts.length; j++) {
+          ctx.lineTo(pts[j].x, pts[j].y);
+        }
+        ctx.lineWidth = arc.width;
+        ctx.strokeStyle = arc.color;
+        ctx.shadowColor = '#00f0ff';
+        ctx.shadowBlur = 14;
+        ctx.globalAlpha = Math.min(1, arc.life / 3);
+        ctx.stroke();
+
+        // White hot inner core stroke
+        ctx.lineWidth = arc.width * 0.5;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+        ctx.restore();
+      }
+      arc.life--;
+      if (arc.life <= 0) {
+        activeArcs.splice(i, 1);
+      }
+    }
+
+    // 3. Particle Sparks
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.update();
+      p.draw(ctx);
+      if (p.life <= 0) {
+        particles.splice(i, 1);
+      }
+    }
+
+    // 4. Steady harmonic glow ring when at 100%
+    if (isFullyOnline) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(CENTER.x, CENTER.y, RADIUS_IRIS * 1.15, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 16;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    requestAnimationFrame(renderFX);
+  }
+  requestAnimationFrame(renderFX);
+
+  // -------------------------------------------------------------
+  // PROGRESSIVE 6-STAGE CHARGING ESCALATION
+  // -------------------------------------------------------------
+  let isBooting = false;
+  let currentProgress = 0.0;
+  let animationFrameId = null;
+  let isFullyOnline = false;
+
+  function updateProgressUI(pct) {
+    const offset = CIRCUMFERENCE - (pct / 100) * CIRCUMFERENCE;
+    progressRing.style.strokeDashoffset = offset;
+    chargePercentage.textContent = pct.toFixed(1) + '%';
+  }
+
+  function triggerShockwave() {
+    shockwaveRing.classList.remove('shockwave-active');
+    void shockwaveRing.offsetWidth; // Force Reflow
+    shockwaveRing.classList.add('shockwave-active');
+  }
+
+  function updateTicks(active) {
+    const cActive = active ? '#00e5ff' : '#3f4b57';
+    [tickT, tickB, tickL, tickR].forEach(t => {
+      t.style.backgroundColor = cActive;
+    });
+  }
+
+  function applyPhases(pct) {
+    updateProgressUI(pct);
+    updateSoundscape(pct);
+
+    // ==========================================
+    // STAGE 1: 0–20% (DORMANT)
+    // Deep darkness, faint metallic specular glints, faint ice-blue seed filament pulsing slowly
+    // ==========================================
+    if (pct < 20) {
+      statusLabel.textContent = pct < 3 ? "DORMANT" : "POWER INITIATED";
+      statusLabel.className = "text-[11px] font-label font-medium uppercase tracking-[0.32em] text-neutral-400 transition-colors duration-300";
+
+      const factor = pct / 20;
+      reactorImg.style.filter = `brightness(${0.42 + factor * 0.12}) contrast(1.15)`;
+      reactorImg.style.transform = `scale(${1.33 + factor * 0.01})`;
+      plasmaCore.style.opacity = '0';
+      irisAura.style.backgroundColor = 'transparent';
+      ambientGlow.className = "pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] rounded-full bg-cyan-400/0 blur-[90px] transition-all duration-500";
+      containmentField.style.opacity = '0';
+      centerSeedFilament.style.opacity = (0.4 + factor * 0.4).toString();
+      updateTicks(false);
+      applyElectricJitter(0);
+    }
+
+    // ==========================================
+    // STAGE 2: 20–40% (INITIAL CURRENT)
+    // Spark flickers around core; inner iris and transformer elements begin soft illumination; micro-arcs
+    // ==========================================
+    else if (pct >= 20 && pct < 40) {
+      statusLabel.textContent = "POWER INITIATED";
+      statusLabel.className = "text-[11px] font-label font-medium uppercase tracking-[0.32em] text-cyan-400/80 transition-colors duration-300";
+
+      const factor = (pct - 20) / 20;
+      reactorImg.style.filter = `brightness(${0.54 + factor * 0.22}) contrast(${1.15 + factor * 0.1})`;
+      reactorImg.style.transform = `scale(${1.34 + factor * 0.02})`;
+      plasmaCore.style.opacity = (factor * 0.25).toString();
+      irisAura.style.backgroundColor = `rgba(0, 229, 255, ${factor * 0.22})`;
+      ambientGlow.className = "pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] rounded-full bg-cyan-400/10 blur-[90px] transition-all duration-500";
+      containmentField.style.opacity = (factor * 0.35).toString();
+
+      // Intermittent micro-arcs around filament
+      if (Math.random() > 0.68) {
+        triggerArcDischarge(1);
+      }
+      if (Math.random() > 0.88) {
+        spawnSparksOutward(1, RADIUS_IRIS * 0.5, RADIUS_IRIS, 0.6);
+      }
+      applyElectricJitter(factor * 0.3);
+    }
+
+    // ==========================================
+    // STAGE 3: 40–60% (ENERGY BUILDUP)
+    // Rapid electrical arcs jump between rings and coils; rotating pulses race circular channel; brighter cyan glow
+    // ==========================================
+    else if (pct >= 40 && pct < 60) {
+      statusLabel.textContent = "ENERGY ACCUMULATING";
+      statusLabel.className = "text-[11px] font-label font-medium uppercase tracking-[0.32em] text-cyan-300 transition-colors duration-300";
+
+      const factor = (pct - 40) / 20;
+      reactorImg.style.filter = `brightness(${0.76 + factor * 0.28}) contrast(${1.25 + factor * 0.12})`;
+      reactorImg.style.transform = `scale(${1.36 + factor * 0.025})`;
+      plasmaCore.style.opacity = (0.25 + factor * 0.3).toString();
+      irisAura.style.backgroundColor = `rgba(0, 240, 255, ${0.22 + factor * 0.32})`;
+      ambientGlow.className = "pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full bg-cyan-400/22 blur-[100px] transition-all duration-500";
+      containmentField.style.opacity = (0.35 + factor * 0.35).toString();
+      updateTicks(true);
+
+      // Rapid electrical arcs jump between inner rings and copper solenoid coil contacts
+      if (Math.random() > 0.4) {
+        triggerArcDischarge(2);
+      }
+      if (Math.random() > 0.55) {
+        spawnSparksOutward(2, RADIUS_INNER_RING, RADIUS_COILS, 1.0);
+      }
+      applyElectricJitter(0.4 + factor * 0.4);
+    }
+
+    // ==========================================
+    // STAGE 4: 60–80% (HIGH-VOLTAGE CHARGING)
+    // Violent high-frequency discharges across multiple coils; sparks physically escape outer perimeter; expanding cyan bloom
+    // ==========================================
+    else if (pct >= 60 && pct < 80) {
+      statusLabel.textContent = "HIGH-VOLTAGE CHARGING";
+      statusLabel.className = "text-[11px] font-label font-semibold uppercase tracking-[0.32em] text-cyan-200 drop-shadow-[0_0_8px_rgba(0,240,255,0.6)] transition-colors duration-300";
+
+      const factor = (pct - 60) / 20;
+      reactorImg.style.filter = `brightness(${1.04 + factor * 0.35}) contrast(1.38)`;
+      reactorImg.style.transform = `scale(${1.385 + factor * 0.025})`;
+      plasmaCore.style.opacity = (0.55 + factor * 0.28).toString();
+      irisAura.style.backgroundColor = `rgba(180, 245, 255, ${0.54 + factor * 0.3})`;
+      ambientGlow.className = "pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[370px] h-[370px] rounded-full bg-cyan-400/32 blur-[110px] transition-all duration-400";
+      containmentField.style.opacity = '0.85';
+
+      // Violent high-frequency discharges across multiple coils
+      triggerArcDischarge(3);
+      if (Math.random() > 0.3) {
+        triggerArcDischarge(3);
+      }
+      // Sparks physically escaping outward from outer perimeter
+      spawnSparksOutward(3, RADIUS_COILS, RADIUS_OUTER + 8, 1.4);
+      applyElectricJitter(0.9 + factor * 0.7);
+    }
+
+    // ==========================================
+    // STAGE 5: 80–100% (MAXIMUM POWER)
+    // Electromagnetic surge connects all segments; intense web; chassis flash; intense near-white center
+    // ==========================================
+    else if (pct >= 80 && pct < 100) {
+      statusLabel.textContent = "MAXIMUM POWER";
+      statusLabel.className = "text-[11px] font-label font-bold uppercase tracking-[0.34em] text-cyan-100 drop-shadow-[0_0_12px_rgba(0,255,255,0.85)] transition-colors duration-200";
+
+      const factor = (pct - 80) / 20;
+      reactorImg.style.filter = `brightness(${1.39 + factor * 0.32}) contrast(${1.38 + factor * 0.12})`;
+      reactorImg.style.transform = `scale(${1.41 + factor * 0.02})`;
+      plasmaCore.style.opacity = (0.83 + factor * 0.15).toString();
+      irisAura.style.backgroundColor = `rgba(235, 255, 255, ${0.84 + factor * 0.16})`;
+      ambientGlow.className = "pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-cyan-400/40 blur-[125px] transition-all duration-300";
+      containmentField.style.opacity = '1';
+
+      // Arc network web connecting all segments
+      triggerArcDischarge(4);
+      triggerArcDischarge(4);
+      if (Math.random() > 0.25) {
+        triggerArcDischarge(4);
+      }
+      spawnSparksOutward(4, RADIUS_COILS * 0.8, RADIUS_OUTER + 16, 1.8);
+      applyElectricJitter(1.5 + factor * 0.5);
+    }
+
+    // ==========================================
+    // STAGE 6: 100% (STABILISATION / REACTOR ONLINE)
+    // Dramatic controlled shockwave; arcs smoothly subside into deep steady cyan-white plasma hum
+    // ==========================================
+    else if (pct >= 100) {
+      isFullyOnline = true;
+      statusLabel.textContent = "REACTOR ONLINE";
+      statusLabel.className = "text-[11px] font-label font-bold uppercase tracking-[0.36em] text-cyan-200 drop-shadow-[0_0_12px_rgba(0,229,255,0.7)] transition-colors duration-500";
+      subPrompt.textContent = "SYSTEM NOMINAL // TAP TO DISCHARGE";
+      subPrompt.className = "text-cyan-300/80 transition-colors duration-300 tracking-[0.2em] text-[9px]";
+
+      reactorImg.style.filter = 'brightness(1.5) contrast(1.42)';
+      reactorImg.style.transform = 'scale(1.42)';
+      plasmaCore.style.opacity = '0.95';
+      irisAura.style.backgroundColor = 'rgba(224, 255, 255, 0.95)';
+      ambientGlow.className = "pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[390px] h-[390px] rounded-full bg-cyan-400/35 blur-[120px] transition-all duration-700";
+      containmentField.style.opacity = '1';
+
+      progressRing.classList.remove('stroke-cyan-400/60');
+      progressRing.classList.add('stroke-cyan-300', 'drop-shadow-[0_0_8px_rgba(0,229,255,0.8)]');
+
+      nextScreenPrompt.classList.remove('opacity-0', 'pointer-events-none');
+      nextScreenPrompt.classList.add('opacity-100');
+
+      applyElectricJitter(0);
+    }
+  }
+
+  // Sequencer Initiation
+  function startBootSequence() {
+    if (isBooting) return;
+    isBooting = true;
+    initAudio();
+
+    // Initial spark flash
+    pulseFlash.style.opacity = '0.85';
+    setTimeout(() => { pulseFlash.style.opacity = '0'; }, 160);
+
+    if (navigator.vibrate) navigator.vibrate([20, 25, 20]);
+    playElectricZap(0.5);
+
+    const startTime = performance.now();
+    const duration = 5400; // 5.4 seconds cinematic escalation
+
+    function step(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // Dynamic acceleration curve
+      const eased = progress < 0.5 
+        ? 2 * progress * progress 
+        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+      currentProgress = eased * 100;
+      applyPhases(currentProgress);
+
+      if (progress < 1) {
+        animationFrameId = requestAnimationFrame(step);
+      } else {
+        isBooting = false;
+        triggerShockwave();
+        playSubBassImpact();
+        playHarmonicChord();
+        if (navigator.vibrate) navigator.vibrate([40, 70, 110]);
+      }
+    }
+    animationFrameId = requestAnimationFrame(step);
+  }
+
+  // Discharge / Reset
+  function resetSequence() {
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    isBooting = false;
+    isFullyOnline = false;
+    currentProgress = 0;
+    activeArcs.length = 0;
+    applyPhases(0);
+
+    progressRing.classList.add('stroke-cyan-400/60');
+    progressRing.classList.remove('stroke-cyan-300', 'drop-shadow-[0_0_8px_rgba(0,229,255,0.8)]');
+    subPrompt.textContent = "TAP CORE TO INITIALIZE";
+    subPrompt.className = "text-neutral-600 transition-colors duration-300 tracking-[0.22em] text-[9px]";
+    nextScreenPrompt.classList.add('opacity-0', 'pointer-events-none');
+    nextScreenPrompt.classList.remove('opacity-100');
+
+    if (navigator.vibrate) navigator.vibrate(20);
+    playElectricZap(0.35);
+  }
+
+  // Interactive handler on reactor or screen tap
+  reactorAssembly.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!isBooting && !isFullyOnline) {
+      startBootSequence();
+    } else if (isFullyOnline) {
+      resetSequence();
+    }
+  });
+
+  masterBody.addEventListener('click', (e) => {
+    if (e.target.closest('#soundToggle') || e.target.closest('#nextScreenPrompt')) return;
+    if (!isBooting && !isFullyOnline) {
+      startBootSequence();
+    } else if (isFullyOnline) {
+      resetSequence();
+    }
+  });
+
+  // Autoplay trigger shortly after load
+  window.addEventListener('DOMContentLoaded', () => {
+    applyPhases(0);
+    setTimeout(() => {
+      if (!isFullyOnline && !isBooting) {
+        startBootSequence();
+      }
+    }, 700);
+  });
+})();
+</script>
+
+
+</body></html>

@@ -1,0 +1,647 @@
+<!DOCTYPE html><html class="dark" lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"><meta content="mobile_stack" name="shell-type"><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=Sora:wght@400;500;700&amp;family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Inter:wght@400;500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{width:100vw;height:100vh;margin:0;padding:0;background-color:#051424;overflow:hidden;}body{overscroll-behavior:none;user-select:none;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {secondary: "#7bd0ff", "on-primary-fixed": "#001f24", "secondary-fixed": "#c4e7ff", "surface-dim": "#051424", "tertiary-fixed-dim": "#ffb95f", "surface-container-lowest": "#010f1f", "on-error-container": "#ffdad6", primary: "#c3f5ff", "surface-tint": "#00daf3", "surface-container-high": "#1c2b3c", "surface-bright": "#2c3a4c", "secondary-fixed-dim": "#7bd0ff", outline: "#849396", "on-error": "#690005", "on-primary": "#00363d", error: "#ffb4ab", "on-surface-variant": "#bac9cc", "inverse-primary": "#006875", "secondary-container": "#00a6e0", "on-secondary-fixed": "#001e2c", "on-tertiary": "#472a00", "on-tertiary-fixed": "#2a1700", "on-tertiary-fixed-variant": "#653e00", "on-secondary": "#00354a", "on-tertiary-container": "#7e4e00", "outline-variant": "#3b494c", "surface-container": "#122131", "primary-fixed": "#9cf0ff", "primary-fixed-dim": "#00daf3", background: "#051424", "inverse-surface": "#d4e4fa", "inverse-on-surface": "#233143", surface: "#051424", "on-background": "#d4e4fa", "on-secondary-container": "#00374d", "error-container": "#93000a", "primary-container": "#00e5ff", tertiary: "#ffe9d3", "surface-container-highest": "#273647", "on-secondary-fixed-variant": "#004c69", "on-primary-fixed-variant": "#004f58", "tertiary-fixed": "#ffddb8", "on-primary-container": "#00626e", "on-surface": "#d4e4fa", "surface-variant": "#273647", "surface-container-low": "#0d1c2d", "tertiary-container": "#ffc681"}, borderRadius: {DEFAULT: "1rem", lg: "2rem", xl: "3rem", full: "9999px"}, spacing: {"space-sm": "0.5rem", "space-xl": "2.5rem", "margin-mobile": "1rem", "space-md": "1rem", gutter: "1.5rem", "gutter-mobile": "0.75rem", "space-xs": "0.25rem", "space-lg": "1.5rem", margin: "2.5rem"}, fontFamily: {"headline-md": ["Space Grotesk"], "headline-lg-mobile": ["Space Grotesk"], "label-sm": ["JetBrains Mono"], "headline-lg": ["Space Grotesk"], "headline-xl-mobile": ["Space Grotesk"], "label-lg": ["JetBrains Mono"], "headline-xl": ["Space Grotesk"], "body-md": ["Inter"], "body-sm": ["Inter"], "label-md": ["JetBrains Mono"], "body-lg": ["Inter"], headline: ["Space Grotesk"], display: ["Space Grotesk"], body: ["Sora"], label: ["Inter"]}, fontSize: {"headline-md": ["22px", {lineHeight: "28px", letterSpacing: "0.01em", fontWeight: "500"}], "headline-lg-mobile": ["24px", {lineHeight: "32px", letterSpacing: "0em", fontWeight: "500"}], "label-sm": ["10px", {lineHeight: "14px", letterSpacing: "0.12em", fontWeight: "400"}], "headline-lg": ["32px", {lineHeight: "40px", letterSpacing: "-0.01em", fontWeight: "500"}], "headline-xl-mobile": ["32px", {lineHeight: "40px", letterSpacing: "-0.01em", fontWeight: "500"}], "label-lg": ["13px", {lineHeight: "18px", letterSpacing: "0.08em", fontWeight: "500"}], "headline-xl": ["48px", {lineHeight: "56px", letterSpacing: "-0.02em", fontWeight: "500"}], "body-md": ["14px", {lineHeight: "20px", letterSpacing: "0.01em", fontWeight: "400"}], "body-sm": ["12px", {lineHeight: "16px", letterSpacing: "0.02em", fontWeight: "400"}], "label-md": ["11px", {lineHeight: "16px", letterSpacing: "0.1em", fontWeight: "500"}], "body-lg": ["16px", {lineHeight: "24px", letterSpacing: "0.01em", fontWeight: "400"}]}}}};</script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  <style>.material-symbols-outlined { font-family: 'Material Symbols Outlined' !important; font-weight: normal; font-style: normal; font-size: inherit; line-height: 1; letter-spacing: normal; text-transform: none; display: inline-block; white-space: nowrap; word-wrap: normal; direction: ltr; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; font-feature-settings: 'liga'; }</style></head><body class="bg-surface text-on-surface flex items-center justify-center min-h-screen overflow-hidden select-none">
+<!-- STRICT 390 x 844 DEVICE ROOT CONTAINER -->
+<div class="relative w-[390px] h-[844px] max-h-[844px] overflow-hidden bg-surface-container-lowest shadow-2xl flex flex-col select-none">
+<!-- FULL VIEWPORT REAL-TIME CAMERA / SYNTHETIC MATRIX CANVAS -->
+<video autoplay="" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 opacity-0 z-0" id="cameraFeed" muted="" playsinline="" style="transform: scaleX(-1);"></video>
+<canvas class="absolute inset-0 w-full h-full object-cover pointer-events-none transition-opacity duration-700 opacity-100 z-0" height="844" id="fallbackCanvas" width="390"></canvas>
+<!-- Holographic Vignette & Mechanical Visor Edge Scrims -->
+<div class="absolute inset-0 pointer-events-none shadow-[inset_0_0_90px_rgba(5,20,36,0.92)] z-10"></div>
+<div class="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-surface-dim/90 via-surface-dim/50 to-transparent pointer-events-none z-10"></div>
+<div class="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-surface-dim via-surface-dim/90 to-transparent pointer-events-none z-10"></div>
+<!-- SCANNER LASER SWEEP (Phase B) -->
+<div class="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-primary-container to-transparent shadow-[0_0_18px_#00e5ff] pointer-events-none z-30 transition-opacity opacity-0" id="laserScanner" style="top: 68px;"></div>
+<!-- FIXED TOP HEADER (h-14) -->
+<div class="absolute inset-0 z-50 bg-surface-dim/90 backdrop-blur-md flex items-center justify-center p-6 text-center transition-all duration-300 opacity-0 pointer-events-none" id="abortModal"><div class="w-full max-w-xs bg-surface-container rounded-xl p-5 border border-error-container/40 shadow-2xl flex flex-col items-center gap-3"><div class="w-10 h-10 rounded-full bg-error-container/30 flex items-center justify-center text-error"><span class="material-symbols-outlined text-[20px]">warning</span></div><div><div class="font-label-md text-[13px] text-on-surface font-semibold uppercase tracking-wider mb-1">Abort Current Operation?</div><div class="font-body-sm text-[11px] text-on-surface-variant leading-relaxed">Disengage ocular tracking, terminate camera telemetry, and return to Command Wheel.</div></div><div class="flex items-center gap-2 w-full mt-2"><button class="flex-1 py-2 px-3 rounded-full bg-surface-container-high hover:bg-surface-bright text-on-surface font-label-sm text-[10px] tracking-wider uppercase transition-all" id="cancelAbortBtn">Cancel</button><button class="flex-1 py-2 px-3 rounded-full bg-error text-on-error font-label-sm text-[10px] tracking-wider uppercase font-bold transition-all shadow-md" id="confirmAbortBtn">Confirm Abort</button></div></div></div><header class="absolute top-0 inset-x-0 h-14 z-40 bg-surface-dim/75 backdrop-blur-md flex items-center justify-between px-3 border-b border-surface-container-high/40">
+<button class="h-8 px-3 bg-error-container/30 hover:bg-error-container/50 active:scale-95 transition-all rounded-full flex items-center gap-1.5 text-error focus:outline-none border border-error/20" id="openAbortBtn"><svg class="w-3.5 h-3.5 text-error shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg><span class="font-label-sm text-[10px] tracking-wider uppercase font-semibold">ABORT</span></button>
+<div class="flex items-center gap-1.5">
+</div>
+<div class="flex items-center gap-1.5">
+<button class="w-8 h-8 rounded-full bg-surface-container/70 hover:bg-surface-container text-on-surface-variant flex items-center justify-center transition-all">
+</button>
+<div class="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
+</div>
+</div>
+</header>
+<!-- DYNAMIC HELMET HUD RIG (TRANSLATES, SCALES, AND TILTS IN SYNC WITH DETECTED FACE) -->
+<div class="absolute inset-0 pointer-events-none transition-transform duration-75 ease-out will-change-transform z-20 flex items-center justify-center" id="helmetHudRig" style="transform: translate3d(-3.99593px, -10.2314px, 0px) scale(1.01577) rotate(-2.15877deg);">
+<!-- BIOMETRIC TRACKING MESH RETICLES -->
+<div class="absolute inset-0 pointer-events-none" id="biometricLandmarks">
+<!-- Center Forehead -->
+<div class="absolute w-2 h-2 rounded-full bg-primary-container shadow-[0_0_8px_#00e5ff] -translate-x-1/2 -translate-y-1/2 transition-all duration-100" id="nodeForehead" style="transform: translate3d(188.743px, 340.473px, 0px);"></div>
+<!-- Left Ocular Reticle -->
+<div class="absolute w-9 h-9 -translate-x-1/2 -translate-y-1/2 transition-all duration-100" id="nodeLeftEye" style="transform: translate3d(147.987px, 390.4px, 0px);">
+<svg class="w-full h-full animate-[spin_8s_linear_infinite]" viewBox="0 0 40 40">
+<circle cx="20" cy="20" fill="none" r="14" stroke="#00e5ff" stroke-dasharray="3 3" stroke-width="1"></circle>
+<circle cx="20" cy="20" fill="none" r="6" stroke="#7bd0ff" stroke-width="1.5"></circle>
+<path d="M 20 2 L 20 6 M 20 34 L 20 38 M 2 20 L 6 20 M 34 20 L 38 20" stroke="#00e5ff" stroke-width="1.5"></path>
+</svg>
+<span class="absolute -top-3 left-1/2 -translate-x-1/2 font-label-sm text-[7px] text-primary whitespace-nowrap tracking-widest">RET_L: 99%</span>
+</div>
+<!-- Right Ocular Reticle -->
+<div class="absolute w-9 h-9 -translate-x-1/2 -translate-y-1/2 transition-all duration-100" id="nodeRightEye" style="transform: translate3d(229.5px, 390.4px, 0px);">
+<svg class="w-full h-full animate-[spin_8s_linear_infinite_reverse]" viewBox="0 0 40 40">
+<circle cx="20" cy="20" fill="none" r="14" stroke="#00e5ff" stroke-dasharray="4 2" stroke-width="1"></circle>
+<circle cx="20" cy="20" fill="none" r="6" stroke="#7bd0ff" stroke-width="1.5"></circle>
+<path d="M 20 2 L 20 6 M 20 34 L 20 38 M 2 20 L 6 20 M 34 20 L 38 20" stroke="#00e5ff" stroke-width="1.5"></path>
+</svg>
+<span class="absolute -top-3 left-1/2 -translate-x-1/2 font-label-sm text-[7px] text-primary whitespace-nowrap tracking-widest">RET_R: LOCK</span>
+</div>
+<!-- Nose Bridge Marker -->
+<div class="absolute w-2.5 h-2.5 -translate-x-1/2 -translate-y-1/2 transition-all duration-100" id="nodeNose" style="transform: translate3d(188.743px, 414.854px, 0px);">
+<div class="w-full h-full border border-secondary rotate-45 flex items-center justify-center">
+<div class="w-1 h-1 bg-primary rounded-full"></div>
+</div>
+</div>
+<!-- Chin Apex Node -->
+<div class="absolute w-3.5 h-1 bg-primary/70 -translate-x-1/2 -translate-y-1/2 transition-all duration-100" id="nodeChin" style="transform: translate3d(188.743px, 478.027px, 0px);"></div>
+<!-- Left Cheek Gauge -->
+<div class="absolute font-label-sm text-[7px] text-secondary -translate-x-1/2 -translate-y-1/2 tracking-tighter" id="nodeCheekL" style="transform: translate3d(127.608px, 423.006px, 0px);">
+          [▲ 36.8°C]
+        </div>
+<!-- Right Cheek Gauge -->
+<div class="absolute font-label-sm text-[7px] text-secondary -translate-x-1/2 -translate-y-1/2 tracking-tighter" id="nodeCheekR" style="transform: translate3d(249.878px, 423.006px, 0px);">
+          [▼ 72 BPM]
+        </div>
+</div>
+<!-- OCULAR HORIZON GIMBAL LINE -->
+<div class="absolute w-64 h-10 flex items-center justify-between opacity-80 pointer-events-none" id="ocularHorizon">
+<div class="flex items-center gap-1 w-16">
+<div class="w-full h-[1px] bg-primary-container"></div>
+<div class="w-1.5 h-1.5 bg-primary-container rotate-45"></div>
+</div>
+<div class="px-2 py-0.5 rounded-full bg-surface-container-high/90 text-[8px] font-label-sm text-primary tracking-widest">
+          LVL: <span id="pitchAngle">-2.2</span>°
+        </div>
+<div class="flex items-center gap-1 w-16">
+<div class="w-1.5 h-1.5 bg-primary-container rotate-45"></div>
+<div class="w-full h-[1px] bg-primary-container"></div>
+</div>
+</div>
+<!-- MAIN CIRCULAR HELMET TELEMETRY COLLAR (Scaled for 390px Viewport) -->
+<div class="relative w-[280px] h-[280px] flex items-center justify-center">
+<!-- Peripheral Arc Telemetry Graphic -->
+<svg class="absolute inset-0 w-full h-full opacity-65 animate-[spin_50s_linear_infinite]" viewBox="0 0 280 280">
+<circle cx="140" cy="140" fill="none" r="132" stroke="#1c2b3c" stroke-width="1.5"></circle>
+<circle cx="140" cy="140" fill="none" r="132" stroke="#00e5ff" stroke-dasharray="35 150" stroke-linecap="round" stroke-width="2"></circle>
+<circle cx="140" cy="140" fill="none" r="132" stroke="#ffb95f" stroke-dasharray="12 250" stroke-dashoffset="50" stroke-width="2"></circle>
+<circle cx="140" cy="140" fill="none" r="120" stroke="#273647" stroke-dasharray="2 6" stroke-width="1"></circle>
+<circle cx="140" cy="140" fill="none" r="110" stroke="#00e5ff" stroke-dasharray="70 100" stroke-opacity="0.6" stroke-width="1.5"></circle>
+<circle cx="140" cy="140" fill="none" r="90" stroke="#7bd0ff" stroke-dasharray="8 30 2 30" stroke-opacity="0.4" stroke-width="1"></circle>
+</svg>
+<!-- Secondary Reverse Ring with Notch Accents -->
+<svg class="absolute inset-0 w-full h-full opacity-55 animate-[spin_35s_linear_infinite_reverse]" viewBox="0 0 280 280">
+<circle cx="140" cy="140" fill="none" r="125" stroke="#7bd0ff" stroke-dasharray="4 12" stroke-width="1"></circle>
+<path d="M 140 10 L 140 16 M 140 264 L 140 270 M 10 140 L 16 140 M 264 140 L 270 140" stroke="#00daf3" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<!-- STATIC HELMET DOCK INSTRUMENTS (Within 390x844 Bounds) -->
+<div class="absolute inset-0 pointer-events-none p-3 pt-16 pb-48 flex flex-col justify-between z-20" id="hudStaticShell">
+<!-- TOP STATUS SHELF -->
+<!-- CENTER AUTHENTICATION BANNER (Phases D & E) -->
+<div class="self-center px-3.5 py-1.5 rounded-full bg-surface-container-high/90 backdrop-blur-md shadow-lg flex items-center gap-2 transform transition-all duration-500 scale-100 opacity-0" id="authBanner">
+<span class="material-symbols-outlined text-primary text-[15px]">verified_user</span>
+<span class="font-label-sm text-[10px] text-primary tracking-widest font-semibold uppercase">IDENTITY CONFIRMED // T. STARK</span>
+</div>
+<!-- LOWER TELEMETRY DOCKS -->
+</div>
+<!-- INITIAL START SCREEN / GANTRY DEPLOY OVERLAY -->
+<div class="absolute inset-0 z-50 bg-surface-dim/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center transition-all duration-700 opacity-0 pointer-events-none" id="initGantryModal">
+<div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center shadow-2xl mb-4 relative">
+<div class="absolute inset-0 rounded-full bg-primary-container/20 animate-ping"></div>
+<span class="material-symbols-outlined text-[32px] text-primary-container">view_in_ar</span>
+</div>
+<div class="font-label-sm text-[10px] uppercase tracking-widest text-secondary mb-1">STARK INDUSTRIES // GANTRY SYSTEM</div>
+<h2 class="font-headline-lg-mobile text-[22px] leading-tight text-on-surface mb-2 font-bold tracking-tight">VERTICAL HELMET HUD</h2>
+<p class="font-body-sm text-[13px] leading-relaxed text-on-surface-variant max-w-xs mb-6">
+        Engage live camera face-tracking optics to dynamically tether Mark-85 targeting telemetry to your ocular axis.
+      </p>
+<div class="flex flex-col w-full max-w-xs gap-2.5 pointer-events-auto">
+<button class="w-full py-3 px-5 rounded-full bg-primary-container hover:bg-surface-tint active:scale-95 text-on-primary font-label-md text-[12px] tracking-wider uppercase font-bold flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(0,229,255,0.4)]" id="btnEngageGantry">
+<span class="material-symbols-outlined text-[18px]">videocam</span>
+          INITIALISE GANTRY HUD
+        </button>
+<button class="w-full py-2.5 px-5 rounded-full bg-surface-container hover:bg-surface-container-high text-secondary font-label-sm text-[11px] tracking-wider uppercase font-medium flex items-center justify-center gap-2 transition-all" id="btnSyntheticMode">
+<span class="material-symbols-outlined text-[15px]">settings_system_daydream</span>
+          RUN SYNTHETIC SIMULATION
+        </button>
+</div>
+<div class="mt-6 flex items-center gap-2.5 text-on-surface-variant font-label-sm text-[9px]">
+<span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span> CV REAL-TIME</span>
+<span>•</span>
+<span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> SPEECH SYNTH</span>
+<span>•</span>
+<span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim"></span> WEBAUDIO FX</span>
+</div>
+</div>
+<!-- COMPACT BOTTOM CONTROL DOCK (Anchored strictly to bottom, no overflow) -->
+<div class="absolute bottom-0 inset-x-0 z-30 flex flex-col bg-surface-dim/90 backdrop-blur-md"><div class="p-2.5 space-y-1.5"><div class="bg-surface-container rounded-xl px-2.5 py-1.5 shadow-md flex items-center justify-between"><div class="flex items-center gap-2 min-w-0"><div class="w-6 h-6 shrink-0 rounded-full bg-surface-container-high flex items-center justify-center text-primary-container"><svg class="w-3.5 h-3.5 text-primary-container" id="speechIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M6 21v-2a6 6 0 0 1 12 0v2"></path><path d="M19 11a4 4 0 0 1 0 6"></path></svg></div><div class="min-w-0"><div class="font-label-sm text-[7px] text-secondary tracking-widest uppercase">JARVIS AI VOCAL CHANNEL</div><div class="font-body-sm text-[10px] leading-tight text-on-surface truncate font-medium" id="jarvisSpeechText">Helmet interface fully operational.</div></div></div><button class="shrink-0 px-2 py-0.5 rounded-full bg-surface-container-high text-primary font-label-sm text-[8px] flex items-center gap-1" id="toggleAudioBtn"><svg class="w-3 h-3 text-primary shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg><span>VOICE: ON</span></button></div><div class="flex items-center justify-center gap-2 px-1"><button class="flex-1 h-10 max-w-[110px] py-1 px-2 rounded-xl bg-surface-container hover:bg-surface-container-high active:scale-95 text-center transition-all flex items-center justify-center gap-1.5 shadow-md border border-surface-container-high/40" id="btnCalibrate"><svg class="w-4 h-4 text-secondary shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path></svg><span class="font-label-sm text-[8px] text-on-surface uppercase tracking-tight font-medium">CENTER</span></button><button class="flex-1 h-10 max-w-[110px] py-1 px-2 rounded-xl bg-surface-container hover:bg-surface-container-high active:scale-95 text-center transition-all flex items-center justify-center gap-1.5 shadow-md border border-surface-container-high/40" id="btnFlipCam"><svg class="w-4 h-4 text-secondary shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 16l-4 4-4-4"></path><path d="M4 8l4-4 4 4"></path><path d="M16 20V8a4 4 0 0 0-4-4H4"></path><path d="M8 4v12a4 4 0 0 0 4 4h8"></path></svg><span class="font-label-sm text-[8px] text-on-surface uppercase tracking-tight font-medium">CAMERA</span></button><button class="flex-1 h-10 max-w-[110px] py-1 px-2 rounded-xl bg-surface-container hover:bg-surface-container-high active:scale-95 text-center transition-all flex items-center justify-center gap-1.5 shadow-md border border-surface-container-high/40" id="btnRescan"><svg class="w-4 h-4 text-primary-container shrink-0 animate-spin" style="animation-duration: 6s;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path><path d="M12 6v6l4 2"></path></svg><span class="font-label-sm text-[8px] text-primary uppercase tracking-tight font-medium">RE-SCAN</span></button></div><div class="flex items-center justify-between px-2 pt-0.5 font-label-sm text-[8px] text-on-surface-variant"><div class="flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-primary-container"></span><span>LATENCY: <strong class="text-primary font-mono" id="latencyDisplay">14ms</strong></span></div><div>FPS: <strong class="text-primary font-mono" id="fpsDisplay">60</strong></div></div></div><nav class="w-full backdrop-blur-xl bg-[#030914]/85 border-t border-cyan-500/20 py-2.5 px-4 flex items-center justify-around z-40"><button aria-label="Command Wheel" class="p-1.5 rounded-full text-on-surface-variant hover:text-primary transition-all flex items-center justify-center"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><circle cx="19" cy="5" r="2"></circle><circle cx="5" cy="19" r="2"></circle><path d="M10.4 13.6L6.5 17.5"></path><path d="M13.6 10.4L17.5 6.5"></path><circle cx="5" cy="5" r="2"></circle><path d="M6.5 6.5L10.4 10.4"></path><circle cx="19" cy="19" r="2"></circle><path d="M13.6 13.6L17.5 17.5"></path></svg></button><button aria-label="Armoury" class="p-1.5 rounded-full text-on-surface-variant hover:text-primary transition-all flex items-center justify-center"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></button><button aria-label="Workbench" class="p-1.5 rounded-full text-on-surface-variant hover:text-primary transition-all flex items-center justify-center"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg></button><button aria-label="Flight" class="p-1.5 rounded-full text-on-surface-variant hover:text-primary transition-all flex items-center justify-center"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4.5c1.45-1.47 4.5-2 4.5-2"></path><path d="M12 9v5s3.03-.55 4.5-2c1.47-1.45 2-4.5 2-4.5"></path></svg></button><button aria-label="Visor" class="relative p-1.5 rounded-full text-primary-container transition-all flex flex-col items-center justify-center shadow-[0_0_12px_rgba(0,229,255,0.4)]"><svg class="w-5 h-5 text-primary-container" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg><span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-primary-container shadow-[0_0_8px_#00e5ff]"></span></button></nav></div>
+<script>(()=>{const abortModal=document.getElementById('abortModal');const openBtn=document.getElementById('openAbortBtn');const cancelBtn=document.getElementById('cancelAbortBtn');const confirmBtn=document.getElementById('confirmAbortBtn');if(openBtn&&abortModal){openBtn.addEventListener('click',()=>{abortModal.classList.remove('opacity-0','pointer-events-none');abortModal.classList.add('opacity-100','pointer-events-auto');});}if(cancelBtn&&abortModal){cancelBtn.addEventListener('click',()=>{abortModal.classList.remove('opacity-100','pointer-events-auto');abortModal.classList.add('opacity-0','pointer-events-none');});}if(confirmBtn){confirmBtn.addEventListener('click',()=>{if(window.speechSynthesis)window.speechSynthesis.cancel();const vid=document.getElementById('cameraFeed');if(vid&&vid.srcObject){vid.srcObject.getTracks().forEach(t=>t.stop());}window.history.back();});}})();</script></div>
+<script>
+(() => {
+  // --- APPLICATION BOUNDS ---
+  const W = 390;
+  const H = 844;
+
+  // --- APPLICATION STATE ---
+  let audioContext = null;
+  let isVoiceEnabled = true;
+  let isCameraActive = false;
+  let currentFacingMode = 'user';
+  let videoStream = null;
+  let isCombatMode = false;
+
+  // Smoothing / Easing Target Coordinates calibrated to 390x844 center
+  let currentX = 0, currentY = -20, currentScale = 1, currentRot = 0;
+  let targetX = 0, targetY = -20, targetScale = 1, targetRot = 0;
+
+  // DOM Elements
+  const video = document.getElementById('cameraFeed');
+  const canvas = document.getElementById('fallbackCanvas');
+  const ctx = canvas.getContext('2d');
+  const hudRig = document.getElementById('helmetHudRig');
+  const laserScanner = document.getElementById('laserScanner');
+  const initModal = document.getElementById('initGantryModal');
+  const authBanner = document.getElementById('authBanner');
+  const speechText = document.getElementById('jarvisSpeechText');
+  const speechIcon = document.getElementById('speechIcon');
+  const toggleAudioBtn = document.getElementById('toggleAudioBtn');
+  const pitchAngleEl = document.getElementById('pitchAngle');
+  const fpsDisplay = document.getElementById('fpsDisplay');
+  const latencyDisplay = document.getElementById('latencyDisplay');
+
+  // Landmark DOM nodes
+  const nodeForehead = document.getElementById('nodeForehead');
+  const nodeLeftEye = document.getElementById('nodeLeftEye');
+  const nodeRightEye = document.getElementById('nodeRightEye');
+  const nodeNose = document.getElementById('nodeNose');
+  const nodeChin = document.getElementById('nodeChin');
+  const nodeCheekL = document.getElementById('nodeCheekL');
+  const nodeCheekR = document.getElementById('nodeCheekR');
+
+  // --- AUDIO SYNTHESIS ENGINE ---
+  function initAudio() {
+    if (!audioContext) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) audioContext = new AudioCtx();
+    }
+    if (audioContext && audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+  }
+
+  function playTone(freq, type, duration, gainLevel = 0.15) {
+    if (!audioContext) return;
+    try {
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+      gain.gain.setValueAtTime(gainLevel, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioContext.destination);
+      osc.start();
+      osc.stop(audioContext.currentTime + duration);
+    } catch(e) {}
+  }
+
+  function playLockChime() {
+    initAudio();
+    playTone(880, 'sine', 0.1, 0.1);
+    setTimeout(() => playTone(1320, 'triangle', 0.2, 0.12), 90);
+    setTimeout(() => playTone(1760, 'sine', 0.35, 0.08), 180);
+  }
+
+  function playServoClank() {
+    initAudio();
+    if (!audioContext) return;
+    try {
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(140, audioContext.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(40, audioContext.currentTime + 0.25);
+      gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.25);
+      osc.connect(gain);
+      gain.connect(audioContext.destination);
+      osc.start();
+      osc.stop(audioContext.currentTime + 0.25);
+    } catch(e) {}
+  }
+
+  // --- BRITISH JARVIS VOICE ENGINE ---
+  let speechQueue = [];
+  let isSpeaking = false;
+
+  function speakJarvis(phrase) {
+    if (!isVoiceEnabled || !('speechSynthesis' in window)) {
+      speechText.textContent = phrase;
+      return;
+    }
+    speechQueue.push(phrase);
+    processSpeechQueue();
+  }
+
+  function processSpeechQueue() {
+    if (isSpeaking || speechQueue.length === 0) return;
+    isSpeaking = true;
+    const textToSpeak = speechQueue.shift();
+    speechText.textContent = textToSpeak;
+    speechIcon.classList.add('text-primary-container', 'animate-pulse');
+
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    utterance.rate = 1.05;
+    utterance.pitch = 0.95;
+
+    const voices = window.speechSynthesis.getVoices();
+    const britishVoice = voices.find(v => v.lang.includes('en-GB') || v.name.includes('UK') || v.name.includes('Oliver') || v.name.includes('George'));
+    if (britishVoice) utterance.voice = britishVoice;
+
+    utterance.onend = () => {
+      isSpeaking = false;
+      speechIcon.classList.remove('animate-pulse');
+      if (speechQueue.length > 0) {
+        setTimeout(processSpeechQueue, 150);
+      }
+    };
+
+    utterance.onerror = () => {
+      isSpeaking = false;
+      speechIcon.classList.remove('animate-pulse');
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+  }
+
+  // Set fixed 390 x 844 resolution
+  canvas.width = W;
+  canvas.height = H;
+
+  // --- SYNTHETIC BIOMETRIC AVATAR GENERATOR ---
+  let synthPhase = 0;
+  function renderSyntheticFace(timestamp) {
+    if (isCameraActive) return;
+    ctx.clearRect(0, 0, W, H);
+
+    synthPhase += 0.03;
+    const cx = W / 2;
+    const cy = H / 2 - 25;
+
+    // Head Oval Holographic Wireframe
+    ctx.save();
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.25)';
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([4, 6]);
+
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 80, 115, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Biometric Grid Overlay
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.08)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([]);
+    for (let y = cy - 100; y <= cy + 100; y += 22) {
+      ctx.beginPath();
+      ctx.moveTo(cx - 70, y);
+      ctx.lineTo(cx + 70, y);
+      ctx.stroke();
+    }
+    for (let x = cx - 70; x <= cx + 70; x += 22) {
+      ctx.beginPath();
+      ctx.moveTo(x, cy - 90);
+      ctx.lineTo(x, cy + 90);
+      ctx.stroke();
+    }
+
+    // Facial Contour Markers
+    ctx.strokeStyle = 'rgba(123, 208, 255, 0.4)';
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 50);
+    ctx.lineTo(cx, cy + 18);
+    ctx.lineTo(cx + 8, cy + 22);
+    ctx.stroke();
+    ctx.restore();
+
+    // Natural head sway clamped
+    targetX = Math.sin(synthPhase * 0.8) * 14;
+    targetY = -20 + Math.cos(synthPhase * 1.1) * 10;
+    targetScale = 1 + Math.sin(synthPhase * 0.5) * 0.03;
+    targetRot = Math.sin(synthPhase * 0.7) * 2.2;
+
+    updateLandmarkPositions(cx + targetX, cy + targetY + 20, targetScale);
+  }
+
+  // --- POSITION BIOMETRIC LANDMARK RETICLES ---
+  function updateLandmarkPositions(centerX, centerY, scale) {
+    // Clamp inside viewport
+    const cX = Math.max(50, Math.min(W - 50, centerX));
+    const cY = Math.max(90, Math.min(H - 180, centerY));
+
+    const leftEyeX = cX - (40 * scale);
+    const leftEyeY = cY - (16 * scale);
+    const rightEyeX = cX + (40 * scale);
+    const rightEyeY = cY - (16 * scale);
+    const foreheadY = cY - (65 * scale);
+    const noseY = cY + (8 * scale);
+    const chinY = cY + (70 * scale);
+
+    nodeForehead.style.transform = `translate3d(${cX}px, ${foreheadY}px, 0)`;
+    nodeLeftEye.style.transform = `translate3d(${leftEyeX}px, ${leftEyeY}px, 0)`;
+    nodeRightEye.style.transform = `translate3d(${rightEyeX}px, ${rightEyeY}px, 0)`;
+    nodeNose.style.transform = `translate3d(${cX}px, ${noseY}px, 0)`;
+    nodeChin.style.transform = `translate3d(${cX}px, ${chinY}px, 0)`;
+    nodeCheekL.style.transform = `translate3d(${cX - 60 * scale}px, ${cY + 16 * scale}px, 0)`;
+    nodeCheekR.style.transform = `translate3d(${cX + 60 * scale}px, ${cY + 16 * scale}px, 0)`;
+
+    pitchAngleEl.textContent = (targetRot >= 0 ? '+' : '') + targetRot.toFixed(1);
+  }
+
+  // --- PHASE DEPLOYMENT STATE MACHINE ---
+  async function runDeploymentSequence() {
+    initAudio();
+    initModal.classList.add('opacity-0', 'pointer-events-none');
+    playTone(200, 'sine', 0.4, 0.2);
+
+    speakJarvis("Deployment sequence initiated.");
+
+    // Phase A -> Phase B: Facial Scan Laser within [0, 844]
+    setTimeout(() => {
+      laserScanner.classList.remove('opacity-0');
+      let scanY = 60;
+      let scanDirection = 1;
+      const scanInterval = setInterval(() => {
+        scanY += 4 * scanDirection;
+        laserScanner.style.top = scanY + 'px';
+        if (scanY > 640) scanDirection = -1;
+        if (scanY < 70 && scanDirection === -1) {
+          clearInterval(scanInterval);
+          laserScanner.classList.add('opacity-0');
+          completeScanPhase();
+        }
+      }, 16);
+
+      [nodeForehead, nodeLeftEye, nodeRightEye, nodeNose, nodeChin, nodeCheekL, nodeCheekR].forEach(el => {
+        el.classList.remove('opacity-0');
+      });
+      speakJarvis("Calibrating optical sensors.");
+      playServoClank();
+    }, 800);
+  }
+
+  function completeScanPhase() {
+    playLockChime();
+    speakJarvis("Facial recognition complete. Identity confirmed. Welcome back, sir.");
+
+    authBanner.classList.remove('opacity-0', 'scale-90');
+    authBanner.classList.add('opacity-100', 'scale-100');
+
+    setTimeout(() => {
+      authBanner.classList.remove('opacity-100');
+      authBanner.classList.add('opacity-0');
+      speakJarvis("Helmet interface fully operational.");
+    }, 4200);
+  }
+
+  // --- CAMERA ACCESS & LIGHTWEIGHT COMPUTER VISION TRACKING ---
+  async function startCamera(facing = 'user') {
+    try {
+      if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+      }
+      videoStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: facing,
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        },
+        audio: false
+      });
+      video.srcObject = videoStream;
+      await video.play();
+      isCameraActive = true;
+      video.classList.remove('opacity-0');
+      canvas.classList.add('opacity-0');
+      startOpticalTracking();
+      return true;
+    } catch(err) {
+      console.warn("Front Camera not accessible, activating Synthetic Hologram:", err);
+      isCameraActive = false;
+      video.classList.add('opacity-0');
+      canvas.classList.remove('opacity-0');
+      return false;
+    }
+  }
+
+  let faceDetector = null;
+  if ('FaceDetector' in window) {
+    try {
+      faceDetector = new window.FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
+    } catch(e) {}
+  }
+
+  const cvCanvas = document.createElement('canvas');
+  cvCanvas.width = 160;
+  cvCanvas.height = 120;
+  const cvCtx = cvCanvas.getContext('2d', { willReadFrequently: true });
+
+  let lastTrackTime = 0;
+  async function startOpticalTracking() {
+    if (!isCameraActive) return;
+
+    const now = performance.now();
+    const delta = now - lastTrackTime;
+    lastTrackTime = now;
+    if (delta > 0) {
+      fpsDisplay.textContent = Math.round(1000 / delta);
+      latencyDisplay.textContent = Math.round(delta) + 'ms';
+    }
+
+    try {
+      if (faceDetector && video.readyState >= 2) {
+        const faces = await faceDetector.detect(video);
+        if (faces && faces.length > 0) {
+          const face = faces[0];
+          const bb = face.boundingBox;
+          const scaleW = W / video.videoWidth;
+          const scaleH = H / video.videoHeight;
+          const rawCenterX = (video.videoWidth - (bb.x + bb.width / 2)) * scaleW;
+          const rawCenterY = (bb.y + bb.height / 2) * scaleH;
+
+          // Clamped offsets
+          targetX = Math.max(-50, Math.min(50, rawCenterX - W / 2));
+          targetY = Math.max(-60, Math.min(40, rawCenterY - H / 2 - 20));
+          targetScale = Math.max(0.85, Math.min(1.25, bb.width / 140));
+
+          if (face.landmarks) {
+            const leftEye = face.landmarks.find(l => l.type === 'eye' && l.location.x < bb.x + bb.width / 2);
+            const rightEye = face.landmarks.find(l => l.type === 'eye' && l.location.x >= bb.x + bb.width / 2);
+            if (leftEye && rightEye) {
+              const dX = rightEye.location.x - leftEye.location.x;
+              const dY = rightEye.location.y - leftEye.location.y;
+              targetRot = Math.max(-20, Math.min(20, -Math.atan2(dY, dX) * (180 / Math.PI)));
+            }
+          }
+        }
+      } else if (video.readyState >= 2) {
+        cvCtx.drawImage(video, 0, 0, 160, 120);
+        const imgData = cvCtx.getImageData(30, 20, 100, 80);
+        const data = imgData.data;
+        let weightedX = 0, weightedY = 0, totalWeight = 0;
+
+        for (let i = 0; i < data.length; i += 16) {
+          const r = data[i], g = data[i+1], b = data[i+2];
+          const weight = (r * 1.3 > g && g > b) ? (r + g) : 0;
+          if (weight > 100) {
+            const pixelIdx = i / 4;
+            const px = pixelIdx % 100;
+            const py = Math.floor(pixelIdx / 100);
+            weightedX += px * weight;
+            weightedY += py * weight;
+            totalWeight += weight;
+          }
+        }
+
+        if (totalWeight > 0) {
+          const avgX = weightedX / totalWeight;
+          const avgY = weightedY / totalWeight;
+          targetX = Math.max(-45, Math.min(45, ((50 - avgX) / 50) * 60));
+          targetY = Math.max(-50, Math.min(30, ((avgY - 40) / 40) * 45 - 20));
+        }
+      }
+    } catch (e) {}
+
+    requestAnimationFrame(startOpticalTracking);
+  }
+
+  // Pointer Interaction
+  window.addEventListener('pointermove', (e) => {
+    if (!isCameraActive) {
+      const normX = (e.clientX - (window.innerWidth / 2)) / (W / 2);
+      const normY = (e.clientY - (window.innerHeight / 2)) / (H / 2);
+      targetX = Math.max(-40, Math.min(40, normX * 35));
+      targetY = Math.max(-50, Math.min(20, normY * 30 - 20));
+      targetRot = Math.max(-15, Math.min(15, normX * 6));
+    }
+  });
+
+  if (window.DeviceOrientationEvent) {
+    window.addEventListener('deviceorientation', (e) => {
+      if (e.gamma !== null) {
+        targetRot = Math.max(-18, Math.min(18, e.gamma * 0.6));
+      }
+    });
+  }
+
+  // --- SMOOTH RIG RENDERING LOOP ---
+  function hudAnimationLoop(time) {
+    currentX += (targetX - currentX) * 0.14;
+    currentY += (targetY - currentY) * 0.14;
+    currentScale += (targetScale - currentScale) * 0.12;
+    currentRot += (targetRot - currentRot) * 0.14;
+
+    hudRig.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) scale(${currentScale}) rotate(${currentRot}deg)`;
+
+    if (!isCameraActive) {
+      renderSyntheticFace(time);
+    } else {
+      updateLandmarkPositions(W / 2 + currentX, H / 2 + currentY, currentScale);
+    }
+
+    requestAnimationFrame(hudAnimationLoop);
+  }
+  requestAnimationFrame(hudAnimationLoop);
+
+  // --- BUTTON HANDLERS ---
+  document.getElementById('btnEngageGantry').addEventListener('click', async () => {
+    initAudio();
+    await startCamera('user');
+    runDeploymentSequence();
+  });
+
+  document.getElementById('btnSyntheticMode').addEventListener('click', () => {
+    initAudio();
+    isCameraActive = false;
+    runDeploymentSequence();
+  });
+
+  document.getElementById('btnCalibrate').addEventListener('click', () => {
+    playTone(1200, 'square', 0.08, 0.1);
+    targetX = 0;
+    targetY = -20;
+    targetScale = 1;
+    targetRot = 0;
+    speakJarvis("Optics centered and re-calibrated.");
+  });
+
+  document.getElementById('btnFlipCam').addEventListener('click', async () => {
+    playServoClank();
+    currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
+    video.style.transform = (currentFacingMode === 'user') ? 'scaleX(-1)' : 'scaleX(1)';
+    await startCamera(currentFacingMode);
+    speakJarvis("Switching optic aperture.");
+  });
+
+  document.getElementById('btnRescan').addEventListener('click', () => {
+    playServoClank();
+    runDeploymentSequence();
+  });
+
+  const btnCombat = document.getElementById('btnCombatMode');
+  const armorBar = document.getElementById('armorBar');
+  const reactorVal = document.getElementById('reactorVal');
+
+  btnCombat.addEventListener('click', () => {
+    initAudio();
+    isCombatMode = !isCombatMode;
+    if (isCombatMode) {
+      btnCombat.classList.add('bg-error-container/40');
+      armorBar.classList.replace('bg-primary-container', 'bg-tertiary-fixed-dim');
+      reactorVal.textContent = "14.8 GW";
+      reactorVal.classList.replace('text-primary', 'text-tertiary-fixed-dim');
+      playTone(300, 'sawtooth', 0.3, 0.2);
+      speakJarvis("Combat mode engaged. Repulsor capacitors overloaded.");
+    } else {
+      btnCombat.classList.remove('bg-error-container/40');
+      armorBar.classList.replace('bg-tertiary-fixed-dim', 'bg-primary-container');
+      reactorVal.textContent = "8.42 GW";
+      reactorVal.classList.replace('text-tertiary-fixed-dim', 'text-primary');
+      playTone(600, 'sine', 0.2, 0.1);
+      speakJarvis("Combat protocols disengaged. Returning to surveillance.");
+    }
+  });
+
+  toggleAudioBtn.addEventListener('click', () => {
+    initAudio();
+    isVoiceEnabled = !isVoiceEnabled;
+    toggleAudioBtn.innerHTML = isVoiceEnabled 
+      ? '<span class="material-symbols-outlined text-[12px]">volume_up</span><span>VOICE: ON</span>'
+      : '<span class="material-symbols-outlined text-[12px]">volume_off</span><span>VOICE: MUTED</span>';
+    if (!isVoiceEnabled && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (videoStream) {
+      videoStream.getTracks().forEach(track => track.stop());
+    }
+  });
+})();
+</script>
+
+
+</body></html>

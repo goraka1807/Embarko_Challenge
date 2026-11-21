@@ -1,0 +1,2061 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
+<meta content="mobile_stack" name="shell-type">
+<title>JARVIS Flight Telemetry HUD</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=Sora:wght@400;500;700&amp;family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {darkMode: "class", theme: {extend: {colors: {surface: "#051424", "surface-dim": "#051424", "surface-container-lowest": "#010f1f", "surface-container-low": "#0d1c2d", "surface-container": "#122131", "surface-container-high": "#1c2b3c", "surface-container-highest": "#273647", primary: "#c3f5ff", "primary-container": "#00e5ff", "primary-fixed": "#9cf0ff", "primary-fixed-dim": "#00daf3", secondary: "#7bd0ff", "secondary-container": "#00a6e0", "on-surface": "#d4e4fa", "on-surface-variant": "#bac9cc", outline: "#849396", "outline-variant": "#3b494c", error: "#ffb4ab", "error-container": "#93000a", "tertiary-container": "#ffc681", "secondary-fixed-dim": "#7bd0ff", "on-primary-container": "#00626e", "on-primary": "#00363d", "surface-bright": "#2c3a4c", "inverse-surface": "#d4e4fa", "on-tertiary-fixed-variant": "#653e00", "surface-tint": "#00daf3", "tertiary-fixed-dim": "#ffb95f", "on-error": "#690005", "surface-variant": "#273647", "tertiary-fixed": "#ffddb8", background: "#051424", "inverse-primary": "#006875", "on-error-container": "#ffdad6", "on-secondary-fixed-variant": "#004c69", "on-tertiary-container": "#7e4e00", "secondary-fixed": "#c4e7ff", "on-tertiary": "#472a00", tertiary: "#ffe9d3", "on-secondary": "#00354a", "on-primary-fixed-variant": "#004f58", "on-primary-fixed": "#001f24", "on-secondary-container": "#00374d", "on-secondary-fixed": "#001e2c", "on-background": "#d4e4fa", "on-tertiary-fixed": "#2a1700", "inverse-on-surface": "#233143"}, fontFamily: {"headline-lg": ["Space Grotesk", "sans-serif"], "headline-md": ["Space Grotesk", "sans-serif"], "headline-sm": ["Space Grotesk", "sans-serif"], "body-lg": ["Inter", "sans-serif"], "body-md": ["Inter", "sans-serif"], "body-sm": ["Inter", "sans-serif"], "label-lg": ["JetBrains Mono", "monospace"], "label-md": ["JetBrains Mono", "monospace"], "label-sm": ["JetBrains Mono", "monospace"], headline: ["Space Grotesk"], display: ["Space Grotesk"], body: ["Sora"], label: ["Inter"]}, fontSize: {}, borderRadius: {DEFAULT: "1rem", lg: "2rem", xl: "3rem", full: "9999px"}}}}
+  </script>
+<style>
+    @layer base {
+      html, body {
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: none;
+        background-color: #051424;
+      }
+      .pt-safe { padding-top: max(env(safe-area-inset-top, 0px), 12px); }
+      .pb-safe { padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px); }
+    }
+
+    /* 3D Flight Viewport styling */
+    .flight-perspective {
+      perspective: 1000px;
+      perspective-origin: 50% 50%;
+    }
+
+    #world-camera {
+      transition: filter 0.2s ease-out;
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+
+    /* Glass Panels */
+    .hud-glass {
+      background: rgba(1, 15, 31, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(0, 229, 255, 0.22);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    }
+    
+    .hud-glass-interactive {
+      background: rgba(1, 15, 31, 0.7);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(0, 229, 255, 0.28);
+    }
+
+    /* Sound Waveform animation */
+    @keyframes wavePulse {
+      0%, 100% { height: 4px; }
+      50% { height: 14px; }
+    }
+    .wave-bar-1 { animation: wavePulse 0.9s infinite ease-in-out; }
+    .wave-bar-2 { animation: wavePulse 0.65s infinite ease-in-out 0.15s; }
+    .wave-bar-3 { animation: wavePulse 0.8s infinite ease-in-out 0.3s; }
+
+    /* Low Energy Pulse Animation */
+    @keyframes alertGlow {
+      0%, 100% {
+        box-shadow: 0 0 10px rgba(255, 180, 171, 0.3), inset 0 0 8px rgba(147, 0, 10, 0.4);
+        border-color: rgba(255, 180, 171, 0.4);
+      }
+      50% {
+        box-shadow: 0 0 24px rgba(255, 80, 60, 0.85), inset 0 0 16px rgba(255, 80, 60, 0.6);
+        border-color: #ffb4ab;
+      }
+    }
+    .energy-warning-active {
+      animation: alertGlow 0.7s infinite alternate ease-in-out;
+    }
+
+    /* JARVIS Voice Subtitle Waveform */
+    @keyframes jarvisVoicePulse {
+      0%, 100% { transform: scaleY(0.4); }
+      50% { transform: scaleY(1.3); }
+    }
+    .voice-meter-1 { animation: jarvisVoicePulse 0.4s infinite ease-in-out; }
+    .voice-meter-2 { animation: jarvisVoicePulse 0.3s infinite ease-in-out 0.1s; }
+    .voice-meter-3 { animation: jarvisVoicePulse 0.5s infinite ease-in-out 0.05s; }
+    .voice-meter-4 { animation: jarvisVoicePulse 0.35s infinite ease-in-out 0.15s; }
+
+    /* Visor Moisture / Cloud Engulf Fog */
+    #cloud-fog-overlay {
+      pointer-events: none;
+      transition: opacity 0.5s ease-in-out;
+      background: radial-gradient(circle at center, rgba(235, 245, 255, 0.85) 0%, rgba(200, 230, 255, 0.5) 60%, rgba(180, 220, 255, 0.2) 100%);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    /* Chromatic Aberration & Radial Edge Tunnel Distortion */
+    .tunnel-vignette {
+      box-shadow: inset 0 0 90px rgba(0, 0, 0, 0.6), inset 0 0 160px rgba(0, 229, 255, 0.15);
+    }
+
+    /* Plasma Repulsor Shimmer at bottom edges */
+    .plasma-shimmer-left {
+      background: radial-gradient(circle at 10% 100%, rgba(0, 229, 255, 0.7) 0%, rgba(0, 166, 224, 0.4) 30%, transparent 70%);
+      filter: blur(6px);
+    }
+    .plasma-shimmer-right {
+      background: radial-gradient(circle at 90% 100%, rgba(0, 229, 255, 0.7) 0%, rgba(0, 166, 224, 0.4) 30%, transparent 70%);
+      filter: blur(6px);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined' !important;
+  font-weight: normal !important;
+  font-style: normal;
+  line-height: 1;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  display: inline-block;
+}
+</style></head>
+<body class="bg-surface text-on-surface font-body-md select-none overflow-hidden relative w-full h-full">
+<!-- ================= FIRST-PERSON 3D WORLD VIEWPORT & PROCEDURAL CANVAS ================= -->
+<div class="flight-perspective absolute inset-0 z-0 overflow-hidden w-full h-full bg-[#051424]" id="flight-viewport">
+<div class="w-[140vw] h-[1237px] -left-[20vw] -top-[176px] absolute origin-center" id="world-camera" style="transform: translate3d(0px, 0px, 0px) rotateX(0deg) rotateZ(0deg) scale(1);">
+<!-- Foundational realistic sky backdrop: IMAGE_11 & IMAGE_12 Seamless Stack -->
+<div class="w-full h-full bg-cover bg-center select-none transform scale-105 will-change-transform opacity-90 transition-opacity duration-700" id="sky-city-layer" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDRyXwKKcdgzMDNACsS_tpGlex0vvOHJyljMfKN779S2wvAeNHUEC_IJurafgEr4aTd747hpN8i02st06Cs44Yrewjhk-AZe4zMQOg3c8FKDK8M1Wpp4mur87TWrztYfdbFDE1ybZMsMIEFCKw4n3ydQeRS5FLmfOtwG6SFqMfJInYPFfpwNyk5g3FDgaEHPeys-Dn1v_Ys00SoCQGNp1ndK4VkYNB1_DUw0FFhIEWnvYJUtet1-ehe');"></div>
+</div>
+<!-- Multi-layered Procedural 60fps Volumetric Sky, Clouds, God Rays, Mach Wave, and Landing Pad -->
+<canvas class="absolute inset-0 w-full h-full pointer-events-none z-[1]" height="884" id="flight-canvas" width="390"></canvas>
+<!-- Atmospheric Visor Cloud Whiteout / Droplet Vapor Envelope Overlay -->
+<div class="absolute inset-0 opacity-0 pointer-events-none z-[2]" id="cloud-fog-overlay"></div>
+<!-- Peripheral Speed Warp & Chromatic Aberration Vignette -->
+<div class="absolute inset-0 tunnel-vignette pointer-events-none z-[3] opacity-60 transition-opacity duration-300" id="tunnel-vignette"></div>
+<!-- Supersonic Mach 1.0 Flash & Implosion Bloom -->
+<div class="absolute inset-0 bg-white/0 pointer-events-none transition-all duration-100 z-[4]" id="boom-flash"></div>
+<!-- Bottom Dynamic Plasma Repulsor Flames -->
+<div class="plasma-shimmer-left absolute inset-x-0 bottom-0 h-48 opacity-25 pointer-events-none transition-all duration-150 z-[5]" id="thruster-flare-left"></div>
+<div class="plasma-shimmer-right absolute inset-x-0 bottom-0 h-48 opacity-25 pointer-events-none transition-all duration-150 z-[5]" id="thruster-flare-right"></div>
+</div>
+<!-- ================= FLIGHT HUD OVERLAY ================= -->
+<div class="relative z-10 w-full h-full flex flex-col justify-between pt-safe pb-safe px-3 pointer-events-none">
+<!-- TOP CONTROLS & STATUS -->
+<div class="w-full flex flex-col gap-2 pointer-events-auto">
+<!-- Primary Top Bar: Exit, State Pill, and Sound Control Drop/Toggles -->
+<div class="w-full flex items-center justify-between">
+<!-- Exit chevron back to JARVIS -->
+<button class="bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20 active:scale-95 px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wider flex items-center gap-1 transition-all uppercase font-mono shadow-[0_0_8px_rgba(239,68,68,0.2)]" id="abort-btn" onclick="openAbortModal()"><span class="material-symbols-outlined text-[13px] text-red-400">warning</span><span>ABORT</span></button>
+<!-- Center Status Badge -->
+<div class="px-3 py-1 rounded-full hud-glass flex items-center gap-2 border border-primary/25" id="flight-state-pill">
+<span class="w-2 h-2 rounded-full bg-primary-container shadow-[0_0_8px_#00e5ff] animate-pulse" id="flight-state-dot"></span>
+<span class="font-label-sm text-[10px] text-primary tracking-widest uppercase font-mono font-bold" id="flight-state-label">STATE: READY</span>
+</div>
+<!-- Audio Master Toggle -->
+<button class="flex items-center gap-1.5 py-1.5 px-3 rounded-full hud-glass hover:bg-surface-container/70 active:scale-95 transition-all text-primary border border-primary/30 shadow-[0_0_12px_rgba(0,229,255,0.15)]" id="sound-btn" onclick="toggleAudio()">
+<div class="flex items-center gap-[2.5px] h-3.5">
+<span class="w-[2px] bg-primary-container rounded-full wave-bar-1 h-2" id="wave-bar-1"></span>
+<span class="w-[2px] bg-primary-container rounded-full wave-bar-2 h-3.5" id="wave-bar-2"></span>
+<span class="w-[2px] bg-primary-container rounded-full wave-bar-3 h-1.5" id="wave-bar-3"></span>
+</div>
+<span class="font-label-sm text-[10px] tracking-wider uppercase font-mono font-semibold" id="sound-label">AUDIO ON</span>
+</button>
+</div>
+<!-- Secondary Audio Channels Bar (Score Music & JARVIS Voice Toggles) -->
+<div class="w-full flex items-center justify-end gap-2 px-1">
+<!-- Music Score Toggle -->
+<button class="flex items-center gap-1.5 py-1 px-2.5 rounded-full hud-glass hover:bg-surface-container/60 active:scale-95 transition-all text-[9px] font-mono font-semibold border border-primary/20 text-secondary" id="music-btn" onclick="toggleMusic()">
+<span class="material-symbols-outlined text-[12px] text-primary-container" id="music-icon">music_note</span>
+<span id="music-label">SCORE: ON</span>
+</button>
+<!-- JARVIS Voice Toggle -->
+<button class="flex items-center gap-1.5 py-1 px-2.5 rounded-full hud-glass hover:bg-surface-container/60 active:scale-95 transition-all text-[9px] font-mono font-semibold border border-primary/20 text-secondary" id="voice-btn" onclick="toggleVoice()">
+<span class="material-symbols-outlined text-[12px] text-primary-container" id="voice-icon">record_voice_over</span>
+<span id="voice-label">JARVIS: ON</span>
+</button>
+</div>
+</div>
+<!-- TELEMETRY BAR: Top Integrated Avionics with Mach Rating & Energy Monitor -->
+<div class="w-full my-1 pointer-events-auto">
+<div class="w-full hud-glass rounded-2xl px-4 py-2.5 flex items-center justify-between border border-primary/25 transition-all duration-300" id="telemetry-bar">
+<!-- SPEED & MACH RATING -->
+<div class="flex flex-col">
+<div class="flex items-center gap-1 text-secondary/70">
+<span class="material-symbols-outlined text-[13px]">speed</span>
+<span class="font-label-sm text-[9.5px] uppercase font-mono tracking-widest">SPEED</span>
+<span class="ml-1 px-1.5 py-0.2 rounded bg-surface-container-high text-primary-fixed text-[8.5px] font-mono font-semibold" id="telemetry-mach">M 0.0</span>
+</div>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-label-lg text-lg font-bold text-primary font-mono tracking-tight leading-none" id="telemetry-speed">0</span>
+<span class="font-label-sm text-[10px] text-secondary font-mono">km/h</span>
+</div>
+</div>
+<div class="h-6 w-px bg-outline-variant/50"></div>
+<!-- ALTITUDE -->
+<div class="flex flex-col items-center">
+<div class="flex items-center gap-1 text-secondary/70">
+<span class="material-symbols-outlined text-[13px]">height</span>
+<span class="font-label-sm text-[9.5px] uppercase font-mono tracking-widest">ALTITUDE</span>
+</div>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-label-lg text-lg font-bold text-primary font-mono tracking-tight leading-none" id="telemetry-alt">1,240</span>
+<span class="font-label-sm text-[10px] text-secondary font-mono">m</span>
+</div>
+</div>
+<div class="h-6 w-px bg-outline-variant/50"></div>
+<!-- ENERGY WITH LOW BATTERY WARNING INDICATOR -->
+<div class="flex flex-col items-end px-2 py-0.5 rounded-lg transition-colors duration-200" id="energy-container">
+<div class="flex items-center gap-1 text-secondary/70" id="energy-header">
+<span class="material-symbols-outlined text-[13px] text-secondary/70" id="energy-icon">bolt</span>
+<span class="font-label-sm text-[9.5px] uppercase font-mono tracking-widest text-secondary/70" id="energy-title">ENERGY</span>
+</div>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-label-lg text-lg font-bold text-primary font-mono tracking-tight leading-none transition-colors" id="telemetry-energy">98</span>
+<span class="font-label-sm text-[10px] text-secondary font-mono" id="energy-unit">%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- JARVIS AI VOICE READOUT / SUBTITLE HUD PILL BANNER -->
+<div class="w-full flex justify-center pointer-events-none transition-all duration-300 transform opacity-0 -translate-y-2" id="jarvis-subtitles-holder">
+<div class="hud-glass rounded-full px-3.5 py-1.5 flex items-center gap-2 border border-primary-container/40 shadow-[0_0_20px_rgba(0,229,255,0.3)] max-w-[92%]">
+<div class="flex items-center gap-0.5 h-3">
+<span class="w-[2px] h-3 bg-primary-container rounded-full voice-meter-1"></span>
+<span class="w-[2px] h-2 bg-primary-container rounded-full voice-meter-2"></span>
+<span class="w-[2px] h-3 bg-primary-container rounded-full voice-meter-3"></span>
+<span class="w-[2px] h-1.5 bg-primary-container rounded-full voice-meter-4"></span>
+</div>
+<span class="text-[10px] font-mono font-bold text-primary-container tracking-wider uppercase">J.A.R.V.I.S.:</span>
+<span class="text-[11px] font-mono text-primary font-medium tracking-wide truncate" id="jarvis-subtitles-text">Flight systems online.</span>
+</div>
+</div>
+<!-- CENTER RETICLE & PITCH HORIZON INDICATOR -->
+<div class="relative my-auto flex flex-col items-center justify-center pointer-events-none transition-transform duration-75 ease-out" id="reticle-container" style="transform: translate3d(0px, 0px, 0px);">
+<!-- Gyroscopic artificial horizon pitch bars -->
+<div class="relative flex items-center justify-center w-48 h-40 transition-transform duration-100" id="reticle-horizon" style="transform: rotate(0deg) translateY(0px);">
+<!-- Pitch ladder left & right -->
+<div class="absolute left-2 flex flex-col items-end gap-3 text-[9px] font-mono text-primary/60">
+<div class="flex items-center gap-1"><span class="w-4 h-px bg-primary/40"></span><span>+10</span></div>
+<div class="w-6 h-px bg-primary-container/80 shadow-[0_0_6px_#00e5ff]"></div>
+<div class="flex items-center gap-1"><span class="w-4 h-px bg-primary/40"></span><span>-10</span></div>
+</div>
+<div class="absolute right-2 flex flex-col items-start gap-3 text-[9px] font-mono text-primary/60">
+<div class="flex items-center gap-1"><span>+10</span><span class="w-4 h-px bg-primary/40"></span></div>
+<div class="w-6 h-px bg-primary-container/80 shadow-[0_0_6px_#00e5ff]"></div>
+<div class="flex items-center gap-1"><span>-10</span><span class="w-4 h-px bg-primary/40"></span></div>
+</div>
+<!-- Central Flight Vector Crosshair -->
+<div class="relative w-14 h-14 flex items-center justify-center">
+<div class="absolute inset-0 rounded-full border border-primary/25 border-dashed animate-[spin_30s_linear_infinite]" id="reticle-outer-ring"></div>
+<div class="absolute w-7 h-px bg-primary-container shadow-[0_0_8px_#00e5ff]"></div>
+<div class="absolute h-7 w-px bg-primary-container shadow-[0_0_8px_#00e5ff]"></div>
+<div class="w-2 h-2 rounded-full border border-primary-container bg-primary-container/30 shadow-[0_0_10px_#00e5ff]"></div>
+</div>
+</div>
+<!-- G-FORCE / HIGH BANKING WARNING HUD PILL -->
+<div class="hidden mt-1 px-3 py-0.5 rounded-full bg-error-container/40 border border-error/50 flex items-center gap-1.5 shadow-[0_0_12px_rgba(255,180,171,0.4)] animate-pulse" id="gforce-badge">
+<span class="material-symbols-outlined text-[13px] text-error font-bold">warning</span>
+<span class="font-label-sm text-[9.5px] text-error tracking-wider uppercase font-mono font-bold" id="gforce-label">HIGH G-LOAD // HEAVY BANK</span>
+</div>
+<!-- LOW POWER WARNING ALARM BANNER (< 20% Energy) -->
+<div class="hidden mt-2 px-3.5 py-1 rounded-full bg-error-container/60 border-2 border-error shadow-[0_0_24px_rgba(255,80,60,0.85)] flex items-center gap-2 animate-bounce" id="low-energy-badge">
+<span class="material-symbols-outlined text-sm text-error animate-spin">battery_alert</span>
+<span class="font-label-sm text-[11px] text-error tracking-widest uppercase font-mono font-bold">LOW POWER // 20% • INITIATE LANDING</span>
+</div>
+<!-- SUPERSONIC MACH BADGE (Triggers when Mach >= 1.0) -->
+<div class="hidden mt-2 px-3.5 py-1 rounded-full bg-primary-container/20 border-2 border-primary-container shadow-[0_0_20px_#00e5ff] flex items-center gap-2 animate-pulse" id="supersonic-badge">
+<span class="material-symbols-outlined text-sm text-primary-container">offline_bolt</span>
+<span class="font-label-sm text-[11px] text-primary tracking-widest uppercase font-mono font-bold" id="supersonic-badge-text">SUPERSONIC // MACH 1.0</span>
+</div>
+<!-- State Prompt Overlay (E.g. "HOLD THRUST TO TAKE OFF") -->
+<div class="mt-2 px-3 py-1.5 rounded-full hud-glass border border-primary-container/40 flex items-center gap-2 animate-bounce" id="flight-hint-banner">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container shadow-[0_0_6px_#00e5ff]"></span>
+<span class="font-label-sm text-[10px] text-primary-fixed tracking-wider uppercase font-mono font-bold" id="flight-hint-text">HOLD THRUST TO TAKE OFF</span>
+</div>
+<!-- Completed Flight Landing Dialog (Hidden initially) -->
+<div class="hidden absolute top-1/2 -translate-y-1/2 w-[86vw] max-w-[340px] hud-glass p-5 rounded-3xl border border-primary/40 shadow-2xl flex-col items-center text-center pointer-events-auto" id="flight-completed-card">
+<div class="w-10 h-10 rounded-full bg-primary-container/20 border border-primary-container flex items-center justify-center mb-3 shadow-[0_0_15px_rgba(0,229,255,0.4)]">
+<span class="material-symbols-outlined text-primary-container text-2xl">check_circle</span>
+</div>
+<h3 class="font-headline-sm text-base text-primary font-bold tracking-wide uppercase">FLIGHT COMPLETE</h3>
+<p class="font-label-sm text-[11px] text-secondary mt-1 font-mono uppercase tracking-wider">PLATFORM SECURED // 0 KM/H</p>
+<button class="mt-4 w-full py-2.5 rounded-xl bg-primary-container text-on-primary-fixed font-label-md text-xs font-bold uppercase tracking-widest shadow-[0_0_16px_rgba(0,229,255,0.45)] active:scale-95 transition-all flex items-center justify-center gap-2" onclick="restartFlightSequence()">
+<span class="material-symbols-outlined text-sm font-bold">restart_alt</span>
+<span>RE-ENGAGE FLIGHT</span>
+</button>
+</div>
+</div>
+<!-- CONTROLS DOCK: Virtual Joystick (Left) + Thrust / Land (Right) -->
+<div class="w-full flex items-end justify-between gap-3 pointer-events-auto pb-safe"><!-- LEFT: Virtual Joystick Base --><div class="flex flex-col items-center"><span class="font-label-sm text-[8.5px] text-secondary/70 uppercase tracking-widest font-mono mb-1">FLIGHT STICK</span><div class="relative w-28 h-28 rounded-full hud-glass-interactive flex items-center justify-center touch-none select-none cursor-grab active:cursor-grabbing border border-primary/30 shadow-[0_4px_24px_rgba(0,0,0,0.5)]" id="joystick-zone"><!-- Guide concentric axes --><div class="absolute inset-3 rounded-full border border-primary/10 border-dashed pointer-events-none"></div><div class="absolute w-full h-px bg-primary/15 pointer-events-none"></div><div class="absolute h-full w-px bg-primary/15 pointer-events-none"></div><!-- Interactive Draggable Knob with Spring-back --><div class="absolute w-12 h-12 rounded-full bg-gradient-to-br from-surface-container-high to-surface-container-lowest border-2 border-primary-container shadow-[0_0_14px_rgba(0,229,255,0.4)] flex items-center justify-center pointer-events-none transition-transform duration-75" id="joystick-knob"><div class="w-3.5 h-3.5 rounded-full bg-primary-container shadow-[0_0_8px_#00e5ff]"></div></div></div></div><!-- RIGHT: Thrust (Hold) + Land Button --><div class="flex flex-col items-end gap-2.5"><!-- Land Action Button --><button class="w-full py-1.5 px-4 rounded-xl hud-glass hover:bg-surface-container/60 active:scale-95 transition-all border border-secondary/30 flex items-center justify-center gap-2 shadow-sm text-secondary hover:text-primary" id="land-btn" onclick="engageLanding()"><span class="material-symbols-outlined text-sm">flight_land</span><span class="font-label-sm text-[10px] font-bold tracking-widest font-mono uppercase">LAND</span></button><!-- Main Glowing THRUST HOLD Button --><div class="relative flex flex-col items-center"><button class="relative w-32 h-16 rounded-2xl bg-gradient-to-r from-primary-container/20 via-surface-container-low to-primary-container/20 border-2 border-primary-container/60 hover:border-primary-container active:border-primary-container shadow-[0_0_20px_rgba(0,229,255,0.25)] active:shadow-[0_0_35px_rgba(0,229,255,0.6)] flex flex-col items-center justify-center text-primary active:scale-95 transition-all select-none overflow-hidden group touch-none" id="thrust-btn"><div class="absolute inset-0 bg-primary-container opacity-0 transition-opacity duration-150 group-active:opacity-20 pointer-events-none" id="thrust-glow"></div><div class="flex items-center gap-1.5 z-10"><span class="material-symbols-outlined text-base text-primary-container animate-pulse">rocket_launch</span><span class="font-label-md text-xs font-bold text-primary tracking-wider font-mono uppercase">THRUST</span></div><span class="font-label-sm text-[8.5px] text-secondary-fixed/90 font-mono tracking-wider z-10 mt-0.5">HOLD TO BOOST</span></button></div></div></div>
+</div>
+<!-- ================= 60FPS PROCEDURAL GRAPHICS, ATMOSPHERE & AUDIO PIPELINE ================= -->
+<script>
+    /* ==========================================================================
+       JARVIS VOICE DIALOGUE CONFIGURATION
+       ========================================================================== */
+    const JARVIS_VOICE_SCRIPTS = {
+      READY: "Flight systems are online, sir. Awaiting your command.",
+      TAKEOFF: "Thrusters engaged. Lifting off.",
+      CRUISING: "Flight is stable. All systems nominal.",
+      ACCELERATION: "Increasing thrust. Approaching supersonic velocity.",
+      SUPERSONIC: "Mach one achieved. Supersonic flight confirmed.",
+      LANDING_INIT: "Preparing landing sequence. Platform acquisition in progress.",
+      TOUCHDOWN: "Touchdown confirmed. Armour stabilizers locked.",
+      COMPLETED: "Welcome back, sir."
+    };
+
+    // --- Audio System Global Variables ---
+    let audioCtx = null;
+    let isMasterMuted = false;
+    let isMusicEnabled = true;
+    let isVoiceEnabled = true;
+    let audioInitialized = false;
+
+    // Master Bus & Ducking Buses
+    let masterGain = null;
+    let musicMasterGain = null;
+    let fxMasterGain = null;
+    let isDucking = false;
+
+    // Flight FX Nodes
+    let ambientDroneOsc = null;
+    let ambientGain = null;
+    let thrusterOsc = null;
+    let thrusterGain = null;
+    let turbineOsc = null;
+    let turbineGain = null;
+    let supersonicHissNode = null;
+    let supersonicHissGain = null;
+    let tiltWindGain = null;
+    let tiltWindFilter = null;
+    let tiltServoOsc = null;
+    let tiltServoGain = null;
+    let gForceStrainOsc = null;
+    let gForceStrainGain = null;
+    let gForceFilter = null;
+
+    // Score Nodes
+    let scorePad1Osc = null;
+    let scorePad2Osc = null;
+    let scorePadFilter = null;
+    let scorePadGain = null;
+    let scoreBassOsc = null;
+    let scoreBassFilter = null;
+    let scoreBassGain = null;
+    let scoreArpTimer = null;
+    let scoreCurrentStep = 0;
+
+    // Alarm Timer
+    let lowEnergyAlarmTimer = null;
+    let isLowEnergyAlertActive = false;
+
+    // Subtitle Element References
+    const subtitleHolder = document.getElementById('jarvis-subtitles-holder');
+    const subtitleText = document.getElementById('jarvis-subtitles-text');
+
+    /* ==========================================================================
+       1. JARVIS AI VOICE ENGINE
+       ========================================================================== */
+    let jarvisVoice = null;
+
+    function populateJarvisVoice() {
+      if (!('speechSynthesis' in window)) return;
+      const voices = window.speechSynthesis.getVoices();
+      jarvisVoice = voices.find(v => v.lang === 'en-GB' || v.lang.startsWith('en_GB') || v.name.includes('Daniel') || v.name.includes('Oliver') || v.name.includes('George') || v.name.includes('Arthur')) 
+                 || voices.find(v => v.lang.includes('GB') || v.lang.includes('UK'))
+                 || voices.find(v => v.lang.startsWith('en'))
+                 || voices[0];
+    }
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = populateJarvisVoice;
+      populateJarvisVoice();
+    }
+
+    function showSubtitle(text, duration = 3200) {
+      if (!subtitleHolder || !subtitleText) return;
+      subtitleText.innerText = text;
+      subtitleHolder.classList.remove('opacity-0', '-translate-y-2');
+      subtitleHolder.classList.add('opacity-100', 'translate-y-0');
+
+      if (window.subtitleTimeout) clearTimeout(window.subtitleTimeout);
+      window.subtitleTimeout = setTimeout(() => {
+        subtitleHolder.classList.remove('opacity-100', 'translate-y-0');
+        subtitleHolder.classList.add('opacity-0', '-translate-y-2');
+      }, duration);
+    }
+
+    function setAudioDucking(duck) {
+      if (!audioCtx || isMasterMuted) return;
+      const now = audioCtx.currentTime;
+      isDucking = duck;
+
+      const musicTarget = duck ? (isMusicEnabled ? 0.35 : 0.0001) : (isMusicEnabled ? 0.85 : 0.0001);
+      const fxTarget = duck ? 0.45 : 1.0;
+
+      if (musicMasterGain) {
+        musicMasterGain.gain.cancelScheduledValues(now);
+        musicMasterGain.gain.linearRampToValueAtTime(musicTarget, now + 0.15);
+      }
+      if (fxMasterGain) {
+        fxMasterGain.gain.cancelScheduledValues(now);
+        fxMasterGain.gain.linearRampToValueAtTime(fxTarget, now + 0.15);
+      }
+    }
+
+    let isSpeaking = false;
+
+    function speakJarvis(text, priority = false) {
+      if (!isVoiceEnabled || isMasterMuted) {
+        showSubtitle(text);
+        return;
+      }
+      if (!('speechSynthesis' in window)) {
+        showSubtitle(text);
+        return;
+      }
+
+      if (isSpeaking && !priority) return;
+
+      window.speechSynthesis.cancel();
+      populateJarvisVoice();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      if (jarvisVoice) utterance.voice = jarvisVoice;
+      utterance.rate = 1.02;
+      utterance.pitch = 0.95;
+      utterance.volume = 1.0;
+
+      utterance.onstart = () => {
+        isSpeaking = true;
+        setAudioDucking(true);
+        showSubtitle(text);
+      };
+
+      utterance.onend = () => {
+        isSpeaking = false;
+        setAudioDucking(false);
+      };
+
+      utterance.onerror = () => {
+        isSpeaking = false;
+        setAudioDucking(false);
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    /* ==========================================================================
+       2. PROCEDURAL CINEMATIC SCORE
+       ========================================================================== */
+    const CHORD_PROGRESSIONS = {
+      READY: [130.81, 196.00, 261.63],
+      TAKEOFF: [110.00, 164.81, 220.00],
+      CRUISING: [146.83, 220.00, 293.66],
+      ACCELERATION: [98.00, 146.83, 196.00],
+      SUPERSONIC: [130.81, 164.81, 246.94],
+      LANDING: [116.54, 174.61, 233.08],
+      COMPLETED: [130.81, 196.00, 329.63]
+    };
+
+    function initCinematicScore() {
+      if (!audioCtx) return;
+
+      musicMasterGain = audioCtx.createGain();
+      musicMasterGain.gain.setValueAtTime(isMusicEnabled ? 0.85 : 0.0001, audioCtx.currentTime);
+      musicMasterGain.connect(masterGain);
+
+      scorePad1Osc = audioCtx.createOscillator();
+      scorePad2Osc = audioCtx.createOscillator();
+      scorePad1Osc.type = 'sawtooth';
+      scorePad2Osc.type = 'triangle';
+
+      scorePad1Osc.frequency.setValueAtTime(130.81, audioCtx.currentTime);
+      scorePad2Osc.frequency.setValueAtTime(196.00, audioCtx.currentTime);
+
+      scorePadFilter = audioCtx.createBiquadFilter();
+      scorePadFilter.type = 'lowpass';
+      scorePadFilter.frequency.setValueAtTime(380, audioCtx.currentTime);
+      scorePadFilter.Q.setValueAtTime(1.5, audioCtx.currentTime);
+
+      scorePadGain = audioCtx.createGain();
+      scorePadGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+
+      scorePad1Osc.connect(scorePadFilter);
+      scorePad2Osc.connect(scorePadFilter);
+      scorePadFilter.connect(scorePadGain);
+      scorePadGain.connect(musicMasterGain);
+
+      scorePad1Osc.start();
+      scorePad2Osc.start();
+
+      scoreBassOsc = audioCtx.createOscillator();
+      scoreBassOsc.type = 'sine';
+      scoreBassOsc.frequency.setValueAtTime(65.4, audioCtx.currentTime);
+
+      scoreBassFilter = audioCtx.createBiquadFilter();
+      scoreBassFilter.type = 'lowpass';
+      scoreBassFilter.frequency.setValueAtTime(160, audioCtx.currentTime);
+
+      scoreBassGain = audioCtx.createGain();
+      scoreBassGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+
+      scoreBassOsc.connect(scoreBassFilter);
+      scoreBassFilter.connect(scoreBassGain);
+      scoreBassGain.connect(musicMasterGain);
+
+      scoreBassOsc.start();
+
+      startScoreArpEngine();
+    }
+
+    function startScoreArpEngine() {
+      if (scoreArpTimer) clearInterval(scoreArpTimer);
+      scoreArpTimer = setInterval(() => {
+        if (!audioCtx || isMasterMuted || !isMusicEnabled) return;
+        scoreCurrentStep = (scoreCurrentStep + 1) % 8;
+        if ((currentState === STATES.ACCELERATION || currentState === STATES.SUPERSONIC) && (scoreCurrentStep % 2 === 0)) {
+          triggerScorePulseNote(scoreCurrentStep === 0 ? 110 : 165);
+        }
+      }, 240);
+    }
+
+    function triggerScorePulseNote(freq) {
+      if (!audioCtx || !musicMasterGain) return;
+      const now = audioCtx.currentTime;
+      const pulseOsc = audioCtx.createOscillator();
+      const pulseGain = audioCtx.createGain();
+      const pulseFilter = audioCtx.createBiquadFilter();
+
+      pulseOsc.type = 'triangle';
+      pulseOsc.frequency.setValueAtTime(freq, now);
+      pulseFilter.type = 'bandpass';
+      pulseFilter.frequency.setValueAtTime(freq * 1.5, now);
+
+      pulseGain.gain.setValueAtTime(0.001, now);
+      pulseGain.gain.linearRampToValueAtTime(0.12, now + 0.04);
+      pulseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+      pulseOsc.connect(pulseFilter);
+      pulseFilter.connect(pulseGain);
+      pulseGain.connect(musicMasterGain);
+      pulseOsc.start(now);
+      pulseOsc.stop(now + 0.25);
+    }
+
+    function updateScoreForState(state) {
+      if (!audioCtx || !scorePad1Osc || !scorePad2Osc || !scorePadFilter || !scoreBassOsc) return;
+      const chord = CHORD_PROGRESSIONS[state] || CHORD_PROGRESSIONS.READY;
+      const now = audioCtx.currentTime;
+
+      scorePad1Osc.frequency.cancelScheduledValues(now);
+      scorePad1Osc.frequency.exponentialRampToValueAtTime(chord[0], now + 1.2);
+
+      scorePad2Osc.frequency.cancelScheduledValues(now);
+      scorePad2Osc.frequency.exponentialRampToValueAtTime(chord[1], now + 1.2);
+
+      scoreBassOsc.frequency.cancelScheduledValues(now);
+      scoreBassOsc.frequency.exponentialRampToValueAtTime(chord[0] / 2, now + 1.0);
+
+      let cutoff = 380;
+      let padVol = 0.08;
+      if (state === STATES.TAKEOFF) { cutoff = 650; padVol = 0.12; }
+      else if (state === STATES.CRUISING) { cutoff = 820; padVol = 0.14; }
+      else if (state === STATES.ACCELERATION) { cutoff = 1150; padVol = 0.18; }
+      else if (state === STATES.SUPERSONIC) { cutoff = 1400; padVol = 0.22; }
+      else if (state === STATES.LANDING) { cutoff = 420; padVol = 0.09; }
+      else if (state === STATES.COMPLETED) { cutoff = 550; padVol = 0.12; }
+
+      scorePadFilter.frequency.cancelScheduledValues(now);
+      scorePadFilter.frequency.exponentialRampToValueAtTime(cutoff, now + 1.4);
+
+      scorePadGain.gain.cancelScheduledValues(now);
+      scorePadGain.gain.linearRampToValueAtTime(padVol, now + 1.2);
+    }
+
+    /* ==========================================================================
+       3. WEB AUDIO FX INITIALIZATION & BUS SYSTEM
+       ========================================================================== */
+    function initAudio() {
+      if (audioInitialized) {
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        return;
+      }
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+
+        masterGain = audioCtx.createGain();
+        masterGain.gain.setValueAtTime(isMasterMuted ? 0.0001 : 1.0, audioCtx.currentTime);
+        masterGain.connect(audioCtx.destination);
+
+        fxMasterGain = audioCtx.createGain();
+        fxMasterGain.gain.setValueAtTime(1.0, audioCtx.currentTime);
+        fxMasterGain.connect(masterGain);
+
+        // Ambient Wind
+        ambientDroneOsc = audioCtx.createOscillator();
+        ambientGain = audioCtx.createGain();
+        ambientDroneOsc.type = 'sine';
+        ambientDroneOsc.frequency.setValueAtTime(62, audioCtx.currentTime);
+        const ambientFilter = audioCtx.createBiquadFilter();
+        ambientFilter.type = 'lowpass';
+        ambientFilter.frequency.setValueAtTime(160, audioCtx.currentTime);
+        ambientGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+        ambientDroneOsc.connect(ambientFilter);
+        ambientFilter.connect(ambientGain);
+        ambientGain.connect(fxMasterGain);
+        ambientDroneOsc.start();
+
+        // Thruster Bass Rumble
+        thrusterOsc = audioCtx.createOscillator();
+        thrusterGain = audioCtx.createGain();
+        thrusterOsc.type = 'triangle';
+        thrusterOsc.frequency.setValueAtTime(75, audioCtx.currentTime);
+        const thrustFilter = audioCtx.createBiquadFilter();
+        thrustFilter.type = 'bandpass';
+        thrustFilter.frequency.setValueAtTime(220, audioCtx.currentTime);
+        thrustFilter.Q.setValueAtTime(2.5, audioCtx.currentTime);
+        thrusterGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+        thrusterOsc.connect(thrustFilter);
+        thrustFilter.connect(thrusterGain);
+        thrusterGain.connect(fxMasterGain);
+        thrusterOsc.start();
+
+        // Turbine Whine
+        turbineOsc = audioCtx.createOscillator();
+        turbineGain = audioCtx.createGain();
+        turbineOsc.type = 'sawtooth';
+        turbineOsc.frequency.setValueAtTime(180, audioCtx.currentTime);
+        const turbineFilter = audioCtx.createBiquadFilter();
+        turbineFilter.type = 'bandpass';
+        turbineFilter.frequency.setValueAtTime(800, audioCtx.currentTime);
+        turbineGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+        turbineOsc.connect(turbineFilter);
+        turbineFilter.connect(turbineGain);
+        turbineGain.connect(fxMasterGain);
+        turbineOsc.start();
+
+        // Noise buffer for supersonic rush & aerodynamic hiss
+        const bufferSize = audioCtx.sampleRate * 2;
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = Math.random() * 2 - 1;
+        }
+
+        supersonicHissNode = audioCtx.createBufferSource();
+        supersonicHissNode.buffer = noiseBuffer;
+        supersonicHissNode.loop = true;
+        const hissFilter = audioCtx.createBiquadFilter();
+        hissFilter.type = 'highpass';
+        hissFilter.frequency.setValueAtTime(1400, audioCtx.currentTime);
+        supersonicHissGain = audioCtx.createGain();
+        supersonicHissGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+        supersonicHissNode.connect(hissFilter);
+        hissFilter.connect(supersonicHissGain);
+        supersonicHissGain.connect(fxMasterGain);
+        supersonicHissNode.start();
+
+        // Tilt Aerodynamic Whoosh
+        const tiltWindNoise = audioCtx.createBufferSource();
+        tiltWindNoise.buffer = noiseBuffer;
+        tiltWindNoise.loop = true;
+        tiltWindFilter = audioCtx.createBiquadFilter();
+        tiltWindFilter.type = 'bandpass';
+        tiltWindFilter.frequency.setValueAtTime(450, audioCtx.currentTime);
+        tiltWindFilter.Q.setValueAtTime(2.2, audioCtx.currentTime);
+        tiltWindGain = audioCtx.createGain();
+        tiltWindGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+        tiltWindNoise.connect(tiltWindFilter);
+        tiltWindFilter.connect(tiltWindGain);
+        tiltWindGain.connect(fxMasterGain);
+        tiltWindNoise.start();
+
+        // Directional Servo
+        tiltServoOsc = audioCtx.createOscillator();
+        tiltServoOsc.type = 'sine';
+        tiltServoOsc.frequency.setValueAtTime(720, audioCtx.currentTime);
+        const servoFilter = audioCtx.createBiquadFilter();
+        servoFilter.type = 'lowpass';
+        servoFilter.frequency.setValueAtTime(1800, audioCtx.currentTime);
+        tiltServoGain = audioCtx.createGain();
+        tiltServoGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+        tiltServoOsc.connect(servoFilter);
+        servoFilter.connect(tiltServoGain);
+        tiltServoGain.connect(fxMasterGain);
+        tiltServoOsc.start();
+
+        // G-Force Buffeting Resonance
+        gForceStrainOsc = audioCtx.createOscillator();
+        gForceStrainOsc.type = 'sawtooth';
+        gForceStrainOsc.frequency.setValueAtTime(115, audioCtx.currentTime);
+        gForceFilter = audioCtx.createBiquadFilter();
+        gForceFilter.type = 'bandpass';
+        gForceFilter.frequency.setValueAtTime(280, audioCtx.currentTime);
+        gForceFilter.Q.setValueAtTime(4.0, audioCtx.currentTime);
+        gForceStrainGain = audioCtx.createGain();
+        gForceStrainGain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+        gForceStrainOsc.connect(gForceFilter);
+        gForceFilter.connect(gForceStrainGain);
+        gForceStrainGain.connect(fxMasterGain);
+        gForceStrainOsc.start();
+
+        initCinematicScore();
+        audioInitialized = true;
+
+        setTimeout(() => {
+          speakJarvis(JARVIS_VOICE_SCRIPTS.READY);
+        }, 500);
+
+      } catch (e) {
+        console.warn("Web Audio not supported or blocked", e);
+      }
+    }
+
+    function toggleAudio() {
+      initAudio();
+      if (!audioCtx) return;
+      isMasterMuted = !isMasterMuted;
+      const soundBtn = document.getElementById('sound-btn');
+      const soundLabel = document.getElementById('sound-label');
+
+      if (isMasterMuted) {
+        masterGain.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
+        soundLabel.innerText = 'AUDIO OFF';
+        soundBtn.classList.add('opacity-50');
+      } else {
+        masterGain.gain.linearRampToValueAtTime(1.0, audioCtx.currentTime + 0.1);
+        soundLabel.innerText = 'AUDIO ON';
+        soundBtn.classList.remove('opacity-50');
+      }
+    }
+
+    function toggleMusic() {
+      initAudio();
+      isMusicEnabled = !isMusicEnabled;
+      const musicBtn = document.getElementById('music-btn');
+      const musicLabel = document.getElementById('music-label');
+      const musicIcon = document.getElementById('music-icon');
+
+      if (!isMusicEnabled) {
+        if (musicMasterGain) musicMasterGain.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + 0.2);
+        musicLabel.innerText = 'SCORE: OFF';
+        musicBtn.classList.add('opacity-50');
+        musicIcon.innerText = 'music_off';
+      } else {
+        if (musicMasterGain) musicMasterGain.gain.linearRampToValueAtTime(isDucking ? 0.35 : 0.85, audioCtx.currentTime + 0.2);
+        musicLabel.innerText = 'SCORE: ON';
+        musicBtn.classList.remove('opacity-50');
+        musicIcon.innerText = 'music_note';
+      }
+    }
+
+    function toggleVoice() {
+      initAudio();
+      isVoiceEnabled = !isVoiceEnabled;
+      const voiceBtn = document.getElementById('voice-btn');
+      const voiceLabel = document.getElementById('voice-label');
+      const voiceIcon = document.getElementById('voice-icon');
+
+      if (!isVoiceEnabled) {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        voiceLabel.innerText = 'JARVIS: OFF';
+        voiceBtn.classList.add('opacity-50');
+        voiceIcon.innerText = 'voice_over_off';
+      } else {
+        voiceLabel.innerText = 'JARVIS: ON';
+        voiceBtn.classList.remove('opacity-50');
+        voiceIcon.innerText = 'record_voice_over';
+        speakJarvis("Audio communications active, sir.");
+      }
+    }
+
+    function playEngineStartSound() {
+      if (!audioCtx || isMasterMuted) return;
+      const now = audioCtx.currentTime;
+
+      const spoolOsc = audioCtx.createOscillator();
+      const spoolGain = audioCtx.createGain();
+      spoolOsc.type = 'sawtooth';
+      spoolOsc.frequency.setValueAtTime(140, now);
+      spoolOsc.frequency.exponentialRampToValueAtTime(880, now + 1.2);
+
+      const spoolFilter = audioCtx.createBiquadFilter();
+      spoolFilter.type = 'bandpass';
+      spoolFilter.frequency.setValueAtTime(300, now);
+      spoolFilter.frequency.exponentialRampToValueAtTime(1400, now + 1.2);
+      spoolFilter.Q.setValueAtTime(3.5, now);
+
+      spoolGain.gain.setValueAtTime(0.001, now);
+      spoolGain.gain.linearRampToValueAtTime(0.24, now + 0.4);
+      spoolGain.gain.exponentialRampToValueAtTime(0.001, now + 1.3);
+
+      spoolOsc.connect(spoolFilter);
+      spoolFilter.connect(spoolGain);
+      spoolGain.connect(fxMasterGain);
+      spoolOsc.start(now);
+      spoolOsc.stop(now + 1.35);
+
+      const ignOsc = audioCtx.createOscillator();
+      const ignGain = audioCtx.createGain();
+      ignOsc.type = 'triangle';
+      ignOsc.frequency.setValueAtTime(240, now + 0.18);
+      ignOsc.frequency.exponentialRampToValueAtTime(70, now + 0.9);
+
+      ignGain.gain.setValueAtTime(0.001, now + 0.18);
+      ignGain.gain.linearRampToValueAtTime(0.4, now + 0.28);
+      ignGain.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
+
+      ignOsc.connect(ignGain);
+      ignGain.connect(fxMasterGain);
+      ignOsc.start(now + 0.18);
+      ignOsc.stop(now + 1.15);
+    }
+
+    function playLandingDescentArrest() {
+      if (!audioCtx || isMasterMuted) return;
+      const now = audioCtx.currentTime;
+
+      const arrestOsc = audioCtx.createOscillator();
+      const arrestGain = audioCtx.createGain();
+      const arrestFilter = audioCtx.createBiquadFilter();
+
+      arrestOsc.type = 'triangle';
+      arrestOsc.frequency.setValueAtTime(160, now);
+      arrestOsc.frequency.exponentialRampToValueAtTime(290, now + 0.8);
+
+      arrestFilter.type = 'bandpass';
+      arrestFilter.frequency.setValueAtTime(420, now);
+      arrestFilter.frequency.exponentialRampToValueAtTime(780, now + 0.8);
+      arrestFilter.Q.setValueAtTime(3.0, now);
+
+      arrestGain.gain.setValueAtTime(0.01, now);
+      arrestGain.gain.linearRampToValueAtTime(0.35, now + 0.3);
+      arrestGain.gain.exponentialRampToValueAtTime(0.01, now + 1.3);
+
+      arrestOsc.connect(arrestFilter);
+      arrestFilter.connect(arrestGain);
+      arrestGain.connect(fxMasterGain);
+      arrestOsc.start(now);
+      arrestOsc.stop(now + 1.35);
+    }
+
+    function playTouchdownImpactSound() {
+      if (!audioCtx || isMasterMuted) return;
+      const now = audioCtx.currentTime;
+
+      const subOsc = audioCtx.createOscillator();
+      const subGain = audioCtx.createGain();
+      subOsc.type = 'sine';
+      subOsc.frequency.setValueAtTime(115, now);
+      subOsc.frequency.exponentialRampToValueAtTime(28, now + 0.45);
+
+      subGain.gain.setValueAtTime(0.001, now);
+      subGain.gain.linearRampToValueAtTime(0.85, now + 0.02);
+      subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+      subOsc.connect(subGain);
+      subGain.connect(fxMasterGain);
+      subOsc.start(now);
+      subOsc.stop(now + 0.65);
+
+      const metalOsc = audioCtx.createOscillator();
+      const metalGain = audioCtx.createGain();
+      metalOsc.type = 'sawtooth';
+      metalOsc.frequency.setValueAtTime(480, now);
+      metalOsc.frequency.exponentialRampToValueAtTime(120, now + 0.3);
+
+      const metalFilter = audioCtx.createBiquadFilter();
+      metalFilter.type = 'bandpass';
+      metalFilter.frequency.setValueAtTime(850, now);
+      metalFilter.Q.setValueAtTime(6.0, now);
+
+      metalGain.gain.setValueAtTime(0.55, now);
+      metalGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+      metalOsc.connect(metalFilter);
+      metalFilter.connect(metalGain);
+      metalGain.connect(fxMasterGain);
+      metalOsc.start(now);
+      metalOsc.stop(now + 0.45);
+    }
+
+    function playArmourLockingSound() {
+      if (!audioCtx || isMasterMuted) return;
+      const now = audioCtx.currentTime;
+
+      const hissBuf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.6, audioCtx.sampleRate);
+      const data = hissBuf.getChannelData(0);
+      for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+
+      const pneuSource = audioCtx.createBufferSource();
+      pneuSource.buffer = hissBuf;
+      const pneuFilter = audioCtx.createBiquadFilter();
+      pneuFilter.type = 'bandpass';
+      pneuFilter.frequency.setValueAtTime(1600, now);
+      pneuFilter.frequency.exponentialRampToValueAtTime(500, now + 0.5);
+
+      const pneuGain = audioCtx.createGain();
+      pneuGain.gain.setValueAtTime(0.25, now);
+      pneuGain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+
+      pneuSource.connect(pneuFilter);
+      pneuFilter.connect(pneuGain);
+      pneuGain.connect(fxMasterGain);
+      pneuSource.start(now);
+      pneuSource.stop(now + 0.6);
+
+      [0.08, 0.22].forEach((offset, idx) => {
+        const clampOsc = audioCtx.createOscillator();
+        const clampGain = audioCtx.createGain();
+        clampOsc.type = idx === 0 ? 'sawtooth' : 'triangle';
+        clampOsc.frequency.setValueAtTime(320 - idx * 80, now + offset);
+        clampOsc.frequency.exponentialRampToValueAtTime(75, now + offset + 0.18);
+
+        clampGain.gain.setValueAtTime(0.001, now + offset);
+        clampGain.gain.linearRampToValueAtTime(0.4, now + offset + 0.02);
+        clampGain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.2);
+
+        clampOsc.connect(clampGain);
+        clampGain.connect(fxMasterGain);
+        clampOsc.start(now + offset);
+        clampOsc.stop(now + offset + 0.22);
+      });
+    }
+
+    function playThrusterSpoolDown() {
+      if (!audioCtx || isMasterMuted) return;
+      const now = audioCtx.currentTime;
+
+      const spoolDownOsc = audioCtx.createOscillator();
+      const spoolDownGain = audioCtx.createGain();
+      spoolDownOsc.type = 'sawtooth';
+      spoolDownOsc.frequency.setValueAtTime(820, now);
+      spoolDownOsc.frequency.exponentialRampToValueAtTime(80, now + 1.6);
+
+      const spoolFilter = audioCtx.createBiquadFilter();
+      spoolFilter.type = 'lowpass';
+      spoolFilter.frequency.setValueAtTime(1400, now);
+      spoolFilter.frequency.exponentialRampToValueAtTime(200, now + 1.6);
+
+      spoolDownGain.gain.setValueAtTime(0.22, now);
+      spoolDownGain.gain.exponentialRampToValueAtTime(0.001, now + 1.7);
+
+      spoolDownOsc.connect(spoolFilter);
+      spoolFilter.connect(spoolDownGain);
+      spoolDownGain.connect(fxMasterGain);
+      spoolDownOsc.start(now);
+      spoolDownOsc.stop(now + 1.75);
+    }
+
+    function playCompletionChime() {
+      if (!audioCtx || isMasterMuted) return;
+      const now = audioCtx.currentTime;
+
+      [1318.51, 1975.53, 2637.02].forEach((freq, i) => {
+        const chimeOsc = audioCtx.createOscillator();
+        const chimeGain = audioCtx.createGain();
+        chimeOsc.type = 'sine';
+        chimeOsc.frequency.setValueAtTime(freq, now + i * 0.08);
+
+        chimeGain.gain.setValueAtTime(0.001, now + i * 0.08);
+        chimeGain.gain.linearRampToValueAtTime(0.18, now + i * 0.08 + 0.02);
+        chimeGain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.08 + 1.2);
+
+        chimeOsc.connect(chimeGain);
+        chimeGain.connect(fxMasterGain);
+        chimeOsc.start(now + i * 0.08);
+        chimeOsc.stop(now + i * 0.08 + 1.3);
+      });
+    }
+
+    function updateTiltAudio(tiltMagnitude, tiltVelocity) {
+      if (!audioCtx || isMasterMuted || !tiltWindGain || !tiltWindFilter || !tiltServoGain || !tiltServoOsc) return;
+      const now = audioCtx.currentTime;
+      const windTargetGain = Math.min(0.28, tiltMagnitude * 0.22 + tiltVelocity * 0.12);
+      const windTargetFreq = 380 + tiltMagnitude * 680 + tiltVelocity * 420;
+
+      tiltWindGain.gain.cancelScheduledValues(now);
+      tiltWindGain.gain.linearRampToValueAtTime(windTargetGain, now + 0.05);
+
+      tiltWindFilter.frequency.cancelScheduledValues(now);
+      tiltWindFilter.frequency.linearRampToValueAtTime(windTargetFreq, now + 0.06);
+
+      const servoTargetGain = Math.min(0.14, tiltVelocity * 0.16 + (tiltMagnitude > 0.6 ? 0.04 : 0));
+      const servoTargetFreq = 620 + tiltMagnitude * 450 + tiltVelocity * 380;
+
+      tiltServoGain.gain.cancelScheduledValues(now);
+      tiltServoGain.gain.linearRampToValueAtTime(servoTargetGain, now + 0.05);
+
+      tiltServoOsc.frequency.cancelScheduledValues(now);
+      tiltServoOsc.frequency.linearRampToValueAtTime(servoTargetFreq, now + 0.06);
+
+      if (gForceStrainGain && gForceFilter) {
+        if (tiltMagnitude > 0.72) {
+          const gIntensity = (tiltMagnitude - 0.72) / 0.28;
+          const strainTargetGain = 0.04 + gIntensity * 0.22;
+          const strainTargetFreq = 160 + gIntensity * 180;
+
+          gForceStrainGain.gain.cancelScheduledValues(now);
+          gForceStrainGain.gain.linearRampToValueAtTime(strainTargetGain, now + 0.06);
+
+          gForceFilter.frequency.cancelScheduledValues(now);
+          gForceFilter.frequency.linearRampToValueAtTime(strainTargetFreq, now + 0.08);
+        } else {
+          gForceStrainGain.gain.cancelScheduledValues(now);
+          gForceStrainGain.gain.linearRampToValueAtTime(0.0001, now + 0.15);
+        }
+      }
+    }
+
+    function playSonicBoomAudio() {
+      if (!audioCtx || isMasterMuted) return;
+      const now = audioCtx.currentTime;
+
+      if (musicMasterGain && isMusicEnabled) {
+        musicMasterGain.gain.cancelScheduledValues(now);
+        musicMasterGain.gain.linearRampToValueAtTime(0.1, now + 0.05);
+        musicMasterGain.gain.exponentialRampToValueAtTime(0.9, now + 1.2);
+      }
+
+      // Explosive Transient Crack
+      const crackOsc = audioCtx.createOscillator();
+      const crackGain = audioCtx.createGain();
+      crackOsc.type = 'sawtooth';
+      crackOsc.frequency.setValueAtTime(620, now);
+      crackOsc.frequency.exponentialRampToValueAtTime(45, now + 0.18);
+
+      const crackFilter = audioCtx.createBiquadFilter();
+      crackFilter.type = 'highpass';
+      crackFilter.frequency.setValueAtTime(320, now);
+
+      crackGain.gain.setValueAtTime(0.9, now);
+      crackGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+      crackOsc.connect(crackFilter);
+      crackFilter.connect(crackGain);
+      crackGain.connect(fxMasterGain);
+      crackOsc.start(now);
+      crackOsc.stop(now + 0.25);
+
+      // Concussive Sub-Bass Rumble
+      const subOsc = audioCtx.createOscillator();
+      const subGain = audioCtx.createGain();
+      subOsc.type = 'sine';
+      subOsc.frequency.setValueAtTime(125, now);
+      subOsc.frequency.exponentialRampToValueAtTime(22, now + 1.2);
+
+      subGain.gain.setValueAtTime(0.001, now);
+      subGain.gain.linearRampToValueAtTime(0.85, now + 0.04);
+      subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.25);
+
+      subOsc.connect(subGain);
+      subGain.connect(fxMasterGain);
+      subOsc.start(now);
+      subOsc.stop(now + 1.3);
+
+      // Airframe Reverberation
+      const boomBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 1.5, audioCtx.sampleRate);
+      const boomData = boomBuffer.getChannelData(0);
+      for (let i = 0; i < boomBuffer.length; i++) {
+        boomData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.45));
+      }
+
+      const noiseBoomSource = audioCtx.createBufferSource();
+      noiseBoomSource.buffer = boomBuffer;
+      const noiseFilter = audioCtx.createBiquadFilter();
+      noiseFilter.type = 'lowpass';
+      noiseFilter.frequency.setValueAtTime(950, now);
+      noiseFilter.frequency.exponentialRampToValueAtTime(80, now + 1.2);
+      noiseFilter.Q.setValueAtTime(3.8, now);
+
+      const noiseGain = audioCtx.createGain();
+      noiseGain.gain.setValueAtTime(0.65, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+
+      noiseBoomSource.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(fxMasterGain);
+      noiseBoomSource.start(now);
+      noiseBoomSource.stop(now + 1.45);
+    }
+
+    function playLowEnergyBeep() {
+      if (!audioCtx || isMasterMuted) return;
+      const now = audioCtx.currentTime;
+
+      const osc1 = audioCtx.createOscillator();
+      const gain1 = audioCtx.createGain();
+      osc1.type = 'square';
+      osc1.frequency.setValueAtTime(880, now);
+      gain1.gain.setValueAtTime(0.001, now);
+      gain1.gain.linearRampToValueAtTime(0.18, now + 0.02);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+      osc1.connect(gain1);
+      gain1.connect(fxMasterGain);
+      osc1.start(now);
+      osc1.stop(now + 0.18);
+
+      const osc2 = audioCtx.createOscillator();
+      const gain2 = audioCtx.createGain();
+      osc2.type = 'square';
+      osc2.frequency.setValueAtTime(660, now + 0.2);
+      gain2.gain.setValueAtTime(0.001, now + 0.2);
+      gain2.gain.linearRampToValueAtTime(0.18, now + 0.22);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+      osc2.connect(gain2);
+      gain2.connect(fxMasterGain);
+      osc2.start(now + 0.2);
+      osc2.stop(now + 0.4);
+    }
+
+    function startLowEnergyAlarm() {
+      if (isLowEnergyAlertActive) return;
+      isLowEnergyAlertActive = true;
+      playLowEnergyBeep();
+      lowEnergyAlarmTimer = setInterval(() => {
+        if (energy <= 20 && currentState !== STATES.COMPLETED && currentState !== STATES.READY) {
+          playLowEnergyBeep();
+        } else {
+          stopLowEnergyAlarm();
+        }
+      }, 950);
+    }
+
+    function stopLowEnergyAlarm() {
+      isLowEnergyAlertActive = false;
+      if (lowEnergyAlarmTimer) {
+        clearInterval(lowEnergyAlarmTimer);
+        lowEnergyAlarmTimer = null;
+      }
+    }
+
+    function rampThrusterAudio(isEngaged, currentSpeed) {
+      if (!audioCtx || isMasterMuted) return;
+      const now = audioCtx.currentTime;
+      if (isEngaged) {
+        if (thrusterGain && thrusterOsc) {
+          thrusterGain.gain.linearRampToValueAtTime(0.25, now + 0.2);
+          thrusterOsc.frequency.exponentialRampToValueAtTime(160, now + 0.6);
+        }
+        if (turbineGain && turbineOsc) {
+          turbineGain.gain.linearRampToValueAtTime(0.12, now + 0.3);
+          turbineOsc.frequency.exponentialRampToValueAtTime(420, now + 0.8);
+        }
+      } else {
+        if (thrusterGain && thrusterOsc) {
+          thrusterGain.gain.linearRampToValueAtTime(0.0001, now + 0.4);
+          thrusterOsc.frequency.exponentialRampToValueAtTime(75, now + 0.4);
+        }
+        if (turbineGain && turbineOsc) {
+          turbineGain.gain.linearRampToValueAtTime(0.0001, now + 0.4);
+          turbineOsc.frequency.exponentialRampToValueAtTime(180, now + 0.4);
+        }
+      }
+    }
+
+    /* ==========================================================================
+       4. FLIGHT STATE & PHYSICS ENGINE
+       ========================================================================== */
+    const STATES = {
+      READY: 'READY',
+      TAKEOFF: 'TAKEOFF',
+      CRUISING: 'CRUISING',
+      ACCELERATION: 'ACCELERATION',
+      SUPERSONIC: 'SUPERSONIC',
+      LANDING: 'LANDING',
+      COMPLETED: 'COMPLETED'
+    };
+
+    const MACH_1_SPEED = 1225; // km/h threshold
+
+    let currentState = STATES.READY;
+    let speed = 0;
+    let altitude = 1240;
+    let energy = 98.4;
+    let isThrusting = false;
+    let sonicBoomTriggered = false;
+    let shakeIntensity = 0;
+    let flightDistance = 0;
+
+    // Joystick & Inertia Camera Tracking
+    let joyX = 0;
+    let joyY = 0;
+    let prevJoyX = 0;
+    let prevJoyY = 0;
+    let cameraPitch = 0;
+    let cameraRoll = 0;
+    let cameraPanX = 0;
+    let cameraScale = 1.0;
+    let recoilZ = 0;
+
+    // Cinematic Scripted Moments
+    let cloudEngulfTimer = 0;
+    let sunBreakoutTimer = 0;
+    let nextCloudDiveDist = 1800;
+    let nextSunBreakoutDist = 4500;
+    let landingSequenceProgress = 0; // 0 to 1
+
+    // Elements
+    const cameraEl = document.getElementById('world-camera');
+    const cloudFogEl = document.getElementById('cloud-fog-overlay');
+    const boomFlash = document.getElementById('boom-flash');
+    const supersonicBadge = document.getElementById('supersonic-badge');
+    const supersonicBadgeText = document.getElementById('supersonic-badge-text');
+    const lowEnergyBadge = document.getElementById('low-energy-badge');
+    const gForceBadge = document.getElementById('gforce-badge');
+    const energyContainer = document.getElementById('energy-container');
+    const energyIcon = document.getElementById('energy-icon');
+    const energyTitle = document.getElementById('energy-title');
+    const energyUnit = document.getElementById('energy-unit');
+
+    const flareLeft = document.getElementById('thruster-flare-left');
+    const flareRight = document.getElementById('thruster-flare-right');
+    const reticleHorizon = document.getElementById('reticle-horizon');
+    const reticleContainer = document.getElementById('reticle-container');
+
+    const telemetrySpeed = document.getElementById('telemetry-speed');
+    const telemetryMach = document.getElementById('telemetry-mach');
+    const telemetryAlt = document.getElementById('telemetry-alt');
+    const telemetryEnergy = document.getElementById('telemetry-energy');
+
+    const stateLabel = document.getElementById('flight-state-label');
+    const stateDot = document.getElementById('flight-state-dot');
+    const hintBanner = document.getElementById('flight-hint-banner');
+    const hintText = document.getElementById('flight-hint-text');
+    const completedCard = document.getElementById('flight-completed-card');
+
+    /* ==========================================================================
+       5. MULTI-LAYER VOLUMETRIC CLOUDS & PARTICLE ENGINE (CANVAS 2D 60FPS)
+       ========================================================================== */
+    const canvas = document.getElementById('flight-canvas');
+    const ctx = canvas.getContext('2d');
+    let W = 0;
+    let H = 0;
+
+    function resizeCanvas() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = W * window.devicePixelRatio;
+      canvas.height = H * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Volumetric 3D Cloud Cluster Particles
+    class CloudBank {
+      constructor(zDepth) {
+        this.reset(zDepth || Math.random() * 1200 + 200);
+      }
+      reset(z) {
+        this.z = z;
+        this.x = (Math.random() - 0.5) * (W * 1.8);
+        this.y = (Math.random() - 0.4) * (H * 1.6);
+        this.baseRadius = 75 + Math.random() * 110;
+        this.puffs = [];
+        const puffCount = 5 + Math.floor(Math.random() * 4);
+        for (let i = 0; i < puffCount; i++) {
+          this.puffs.push({
+            dx: (Math.random() - 0.5) * this.baseRadius * 1.2,
+            dy: (Math.random() - 0.5) * this.baseRadius * 0.7,
+            r: this.baseRadius * (0.6 + Math.random() * 0.6),
+            alpha: 0.16 + Math.random() * 0.18
+          });
+        }
+      }
+      update(speedUnits, dt, rollAngle, pitchOffset) {
+        // Z rushes towards the player based on speed
+        this.z -= speedUnits * dt;
+        if (this.z < 30) {
+          // Player flew right through this cloud! Trigger momentary moisture droplet effect if close to center
+          if (Math.hypot(this.x, this.y) < W * 0.35 && speed > 300) {
+            triggerCloudWhispEngulf();
+          }
+          this.reset(1400);
+        }
+      }
+      draw(ctx, cx, cy, rollAngle) {
+        const perspective = 480 / Math.max(20, this.z);
+        const screenX = cx + (this.x) * perspective;
+        const screenY = cy + (this.y) * perspective;
+        const screenR = this.baseRadius * perspective;
+
+        if (screenX + screenR < -100 || screenX - screenR > W + 100 || screenY + screenR < -100 || screenY - screenR > H + 100) return;
+
+        ctx.save();
+        ctx.translate(screenX, screenY);
+        ctx.rotate(rollAngle);
+
+        for (let p of this.puffs) {
+          const pr = p.r * perspective;
+          const px = p.dx * perspective;
+          const py = p.dy * perspective;
+
+          const grad = ctx.createRadialGradient(px, py, pr * 0.15, px, py, pr);
+          // High altitude bright cloud lighting with subtle atmospheric blue-cyan tint
+          grad.addColorStop(0, `rgba(255, 255, 255, ${p.alpha * Math.min(1.0, 1000 / this.z)})`);
+          grad.addColorStop(0.5, `rgba(220, 240, 255, ${p.alpha * 0.7})`);
+          grad.addColorStop(1, 'rgba(180, 215, 255, 0)');
+
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(px, py, pr, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+    }
+
+    // High Speed Radial Speed Streaks & Condensation Trails
+    class SpeedStreak {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.angle = Math.random() * Math.PI * 2;
+        this.dist = 30 + Math.random() * 220;
+        this.speedRate = 600 + Math.random() * 1200;
+        this.len = 15 + Math.random() * 45;
+        this.alpha = 0.2 + Math.random() * 0.6;
+        this.width = 1.0 + Math.random() * 2.0;
+      }
+      update(speedVal, dt) {
+        const mult = speedVal / 300;
+        this.dist += this.speedRate * mult * dt;
+        if (this.dist > Math.max(W, H) * 0.9) {
+          this.reset();
+          this.dist = 40 + Math.random() * 80;
+        }
+      }
+      draw(ctx, cx, cy) {
+        const x1 = cx + Math.cos(this.angle) * this.dist;
+        const y1 = cy + Math.sin(this.angle) * this.dist;
+        const x2 = cx + Math.cos(this.angle) * (this.dist + this.len * (speed / 400));
+        const y2 = cy + Math.sin(this.angle) * (this.dist + this.len * (speed / 400));
+
+        ctx.strokeStyle = `rgba(195, 245, 255, ${this.alpha * Math.min(1.0, speed / 600)})`;
+        ctx.lineWidth = this.width;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+    }
+
+    // High Energy Repulsor Spark & Heat Distortion Particle
+    class RepulsorSpark {
+      constructor(isLeft) {
+        this.isLeft = isLeft;
+        this.reset();
+      }
+      reset() {
+        this.x = this.isLeft ? (W * 0.12 + (Math.random() - 0.5) * 45) : (W * 0.88 + (Math.random() - 0.5) * 45);
+        this.y = H + 10;
+        this.vx = (this.isLeft ? -1 : 1) * (15 + Math.random() * 60);
+        this.vy = -(140 + Math.random() * 320);
+        this.life = 0.25 + Math.random() * 0.45;
+        this.initialLife = this.life;
+        this.size = 2 + Math.random() * 3.5;
+      }
+      update(dt) {
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+        this.life -= dt;
+        if (this.life <= 0) {
+          this.reset();
+        }
+      }
+      draw(ctx) {
+        const norm = Math.max(0, this.life / this.initialLife);
+        ctx.fillStyle = `rgba(0, 229, 255, ${norm * 0.8})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * norm, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Instantiation
+    const CLOUD_COUNT = 34;
+    const clouds = [];
+    for (let i = 0; i < CLOUD_COUNT; i++) {
+      clouds.push(new CloudBank(Math.random() * 1400 + 40));
+    }
+    // Sort so deep clouds render first
+    clouds.sort((a, b) => b.z - a.z);
+
+    const STREAK_COUNT = 45;
+    const streaks = [];
+    for (let i = 0; i < STREAK_COUNT; i++) {
+      streaks.push(new SpeedStreak());
+    }
+
+    const SPARK_COUNT = 36;
+    const repulsorSparks = [];
+    for (let i = 0; i < SPARK_COUNT; i++) {
+      repulsorSparks.push(new RepulsorSpark(i % 2 === 0));
+    }
+
+    // Dynamic Mach 1.0 Shockwave Refraction Ring
+    let machShockwaves = [];
+    class MachShockwave {
+      constructor(cx, cy) {
+        this.cx = cx;
+        this.cy = cy;
+        this.radius = 12;
+        this.maxRadius = Math.max(W, H) * 1.35;
+        this.alpha = 1.0;
+      }
+      update(dt) {
+        this.radius += 1800 * dt;
+        this.alpha = Math.max(0, 1.0 - (this.radius / this.maxRadius));
+      }
+      draw(ctx) {
+        if (this.alpha <= 0) return;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.cx, this.cy, this.radius, 0, Math.PI * 2);
+        ctx.lineWidth = Math.max(2, 14 * this.alpha);
+        ctx.strokeStyle = `rgba(0, 229, 255, ${this.alpha * 0.9})`;
+        ctx.shadowColor = '#00e5ff';
+        ctx.shadowBlur = 24 * this.alpha;
+        ctx.stroke();
+
+        // Secondary inner refraction boundary
+        ctx.beginPath();
+        ctx.arc(this.cx, this.cy, Math.max(0, this.radius - 22), 0, Math.PI * 2);
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = `rgba(255, 255, 255, ${this.alpha * 0.7})`;
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    // High Tech Landing Platform (Rendered in Landing phase)
+    function drawLandingPlatform(ctx, cx, cy, progress, roll) {
+      if (currentState !== STATES.LANDING && currentState !== STATES.COMPLETED) return;
+      ctx.save();
+      ctx.translate(cx, cy + (1.0 - progress) * 280 + 120);
+      ctx.rotate(roll * 0.35);
+
+      const platScale = 0.5 + progress * 0.85;
+      const w = 260 * platScale;
+      const h = 85 * platScale;
+
+      // Platform Ground-effect illumination
+      const glowGrad = ctx.createRadialGradient(0, 0, 10, 0, 0, w * 1.2);
+      glowGrad.addColorStop(0, 'rgba(0, 229, 255, 0.45)');
+      glowGrad.addColorStop(0.5, 'rgba(0, 166, 224, 0.2)');
+      glowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = glowGrad;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, w * 1.2, h * 1.4, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Platform Hexagonal Pad Structure
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(0, 229, 255, 0.85)';
+      ctx.shadowColor = '#00daf3';
+      ctx.shadowBlur = 16;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, w, h, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Inner Landing Vector Rings
+      ctx.lineWidth = 2;
+      ctx.setLineDash([12, 10]);
+      ctx.strokeStyle = 'rgba(195, 245, 255, 0.6)';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, w * 0.65, h * 0.65, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Flight Vector 'H' / Recovery Monogram
+      ctx.strokeStyle = 'rgba(0, 229, 255, 0.9)';
+      ctx.lineWidth = 4;
+      const bW = 34 * platScale;
+      const bH = 22 * platScale;
+      ctx.beginPath();
+      ctx.moveTo(-bW, -bH); ctx.lineTo(-bW, bH);
+      ctx.moveTo(bW, -bH); ctx.lineTo(bW, bH);
+      ctx.moveTo(-bW, 0); ctx.lineTo(bW, 0);
+      ctx.stroke();
+
+      // Expanding Touchdown Shock Dust Wave
+      if (progress > 0.88) {
+        const dustAge = (progress - 0.88) / 0.12;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, w * (1 + dustAge * 1.8), h * (1 + dustAge * 1.8), 0, 0, Math.PI * 2);
+        ctx.lineWidth = 6 * (1 - dustAge);
+        ctx.strokeStyle = `rgba(255, 255, 255, ${(1 - dustAge) * 0.75})`;
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    // Dynamic Atmospheric God Rays (Directional Light Scattering)
+    function drawAtmosphericGodRays(ctx, cx, cy, roll, pitch) {
+      ctx.save();
+      // Sun position slightly above right, responsive to camera pitch and roll
+      const sunX = W * 0.75 - joyX * 90;
+      const sunY = H * 0.22 - pitch * 2.5;
+
+      const numRays = 7;
+      for (let i = 0; i < numRays; i++) {
+        const rayAngle = (i / numRays) * 0.8 + 0.35 + (roll * 0.015);
+        const rayLength = Math.max(W, H) * 1.2;
+        const spread = 0.09;
+
+        const rayGrad = ctx.createLinearGradient(
+          sunX, sunY,
+          sunX + Math.cos(rayAngle) * rayLength,
+          sunY + Math.sin(rayAngle) * rayLength
+        );
+        const shimmer = 0.08 + Math.sin(performance.now() * 0.002 + i) * 0.03;
+        rayGrad.addColorStop(0, `rgba(255, 245, 220, ${shimmer * 1.8})`);
+        rayGrad.addColorStop(0.3, `rgba(200, 235, 255, ${shimmer * 0.9})`);
+        rayGrad.addColorStop(1, 'rgba(0, 229, 255, 0)');
+
+        ctx.fillStyle = rayGrad;
+        ctx.beginPath();
+        ctx.moveTo(sunX, sunY);
+        ctx.lineTo(sunX + Math.cos(rayAngle - spread) * rayLength, sunY + Math.sin(rayAngle - spread) * rayLength);
+        ctx.lineTo(sunX + Math.cos(rayAngle + spread) * rayLength, sunY + Math.sin(rayAngle + spread) * rayLength);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Blinding Sun Corona Flare
+      const sunFlareGrad = ctx.createRadialGradient(sunX, sunY, 10, sunX, sunY, 140);
+      sunFlareGrad.addColorStop(0, 'rgba(255, 255, 240, 0.45)');
+      sunFlareGrad.addColorStop(0.4, 'rgba(255, 230, 180, 0.15)');
+      sunFlareGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = sunFlareGrad;
+      ctx.beginPath();
+      ctx.arc(sunX, sunY, 140, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    // Trigger Organic Moment: Momentary Cloud Dive Engulf
+    function triggerCloudWhispEngulf() {
+      cloudFogEl.style.transition = 'opacity 0.25s ease-out';
+      cloudFogEl.style.opacity = '0.75';
+      setTimeout(() => {
+        cloudFogEl.style.transition = 'opacity 0.7s ease-in-out';
+        cloudFogEl.style.opacity = '0';
+      }, 350);
+    }
+
+    // Trigger Organic Moment: Bursting through overcast into brilliant sun
+    function triggerSunBreakout() {
+      boomFlash.style.transition = 'background-color 0.4s ease-out';
+      boomFlash.style.backgroundColor = 'rgba(255, 250, 230, 0.65)';
+      setTimeout(() => {
+        boomFlash.style.transition = 'background-color 0.9s ease-out';
+        boomFlash.style.backgroundColor = 'transparent';
+      }, 420);
+    }
+
+    /* ==========================================================================
+       6. MACH 1.0 SUPERSONIC BOOM & EFFECTS
+       ========================================================================== */
+    function triggerSonicBoom() {
+      sonicBoomTriggered = true;
+      playSonicBoomAudio();
+
+      setTimeout(() => {
+        speakJarvis(JARVIS_VOICE_SCRIPTS.SUPERSONIC, true);
+      }, 650);
+
+      // Split-second FOV contraction followed by explosive expansion
+      recoilZ = -55;
+      cameraScale = 0.92;
+      setTimeout(() => {
+        cameraScale = 1.15;
+      }, 100);
+
+      // Atmospheric Mach Shock Flash
+      boomFlash.style.transition = 'background-color 0.05s ease-out';
+      boomFlash.style.backgroundColor = 'rgba(210, 248, 255, 0.85)';
+      setTimeout(() => {
+        boomFlash.style.transition = 'background-color 0.35s ease-out';
+        boomFlash.style.backgroundColor = 'transparent';
+      }, 90);
+
+      shakeIntensity = 28;
+
+      // Add High-Pressure Refraction Ring
+      machShockwaves.push(new MachShockwave(W / 2, H / 2));
+    }
+
+    function setState(newState) {
+      const oldState = currentState;
+      if (oldState === newState) return;
+      currentState = newState;
+      stateLabel.innerText = `STATE: ${newState}`;
+
+      updateScoreForState(newState);
+
+      if (newState === STATES.READY) {
+        stateDot.className = "w-2 h-2 rounded-full bg-primary-container shadow-[0_0_8px_#00e5ff] animate-pulse";
+        hintBanner.classList.remove('hidden');
+        hintText.innerText = "HOLD THRUST TO TAKE OFF";
+        completedCard.classList.add('hidden');
+        supersonicBadge.classList.add('hidden');
+        speakJarvis(JARVIS_VOICE_SCRIPTS.READY);
+      } else if (newState === STATES.TAKEOFF) {
+        stateDot.className = "w-2 h-2 rounded-full bg-secondary-container shadow-[0_0_8px_#00a6e0] animate-ping";
+        hintBanner.classList.add('hidden');
+        playEngineStartSound();
+        speakJarvis(JARVIS_VOICE_SCRIPTS.TAKEOFF);
+      } else if (newState === STATES.CRUISING) {
+        stateDot.className = "w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_#c3f5ff]";
+        hintBanner.classList.add('hidden');
+        if (oldState === STATES.TAKEOFF || oldState === STATES.ACCELERATION) {
+          speakJarvis(JARVIS_VOICE_SCRIPTS.CRUISING);
+        }
+      } else if (newState === STATES.ACCELERATION) {
+        stateDot.className = "w-2 h-2 rounded-full bg-primary-container shadow-[0_0_12px_#00e5ff] animate-pulse";
+        hintBanner.classList.add('hidden');
+        speakJarvis(JARVIS_VOICE_SCRIPTS.ACCELERATION);
+      } else if (newState === STATES.SUPERSONIC) {
+        stateDot.className = "w-2 h-2 rounded-full bg-primary-container shadow-[0_0_16px_#00e5ff] animate-ping";
+        hintBanner.classList.add('hidden');
+      } else if (newState === STATES.LANDING) {
+        stateDot.className = "w-2 h-2 rounded-full bg-error shadow-[0_0_8px_#ffb4ab] animate-pulse";
+        hintBanner.classList.remove('hidden');
+        hintText.innerText = "APPROACHING RECOVERY PAD...";
+        supersonicBadge.classList.add('hidden');
+        landingSequenceProgress = 0;
+        
+        playLandingDescentArrest();
+        speakJarvis(JARVIS_VOICE_SCRIPTS.LANDING_INIT);
+
+      } else if (newState === STATES.COMPLETED) {
+        stateDot.className = "w-2 h-2 rounded-full bg-primary-container shadow-[0_0_8px_#00e5ff]";
+        hintBanner.classList.add('hidden');
+        completedCard.classList.remove('hidden');
+        supersonicBadge.classList.add('hidden');
+        stopLowEnergyAlarm();
+
+        playTouchdownImpactSound();
+
+        setTimeout(() => {
+          playArmourLockingSound();
+        }, 360);
+
+        setTimeout(() => {
+          playThrusterSpoolDown();
+        }, 620);
+
+        setTimeout(() => {
+          playCompletionChime();
+          speakJarvis(JARVIS_VOICE_SCRIPTS.TOUCHDOWN);
+          setTimeout(() => {
+            speakJarvis(JARVIS_VOICE_SCRIPTS.COMPLETED);
+          }, 2400);
+        }, 1250);
+      }
+    }
+
+    /* ==========================================================================
+       7. JOYSTICK & TOUCH CONTROLS
+       ========================================================================== */
+    const joystickZone = document.getElementById('joystick-zone');
+    const joystickKnob = document.getElementById('joystick-knob');
+    let isDraggingJoy = false;
+    let joyRect = null;
+    const maxRadius = 38;
+
+    function onJoyStart(e) {
+      initAudio();
+      isDraggingJoy = true;
+      joyRect = joystickZone.getBoundingClientRect();
+      handleJoyMove(e);
+    }
+
+    function onJoyMove(e) {
+      if (!isDraggingJoy) return;
+      handleJoyMove(e);
+    }
+
+    function handleJoyMove(e) {
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const centerX = joyRect.left + joyRect.width / 2;
+      const centerY = joyRect.top + joyRect.height / 2;
+
+      let dx = clientX - centerX;
+      let dy = clientY - centerY;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist > maxRadius) {
+        dx = (dx / dist) * maxRadius;
+        dy = (dy / dist) * maxRadius;
+      }
+
+      joystickKnob.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+      joyX = dx / maxRadius;
+      joyY = dy / maxRadius;
+    }
+
+    function onJoyEnd() {
+      if (!isDraggingJoy) return;
+      isDraggingJoy = false;
+      joystickKnob.style.transition = 'transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+      joystickKnob.style.transform = `translate3d(0px, 0px, 0)`;
+      setTimeout(() => {
+        joystickKnob.style.transition = '';
+      }, 190);
+      joyX = 0;
+      joyY = 0;
+    }
+
+    joystickZone.addEventListener('mousedown', onJoyStart);
+    window.addEventListener('mousemove', onJoyMove);
+    window.addEventListener('mouseup', onJoyEnd);
+
+    joystickZone.addEventListener('touchstart', onJoyStart, { passive: false });
+    window.addEventListener('touchmove', onJoyMove, { passive: false });
+    window.addEventListener('touchend', onJoyEnd);
+    window.addEventListener('touchcancel', onJoyEnd);
+
+    const thrustBtn = document.getElementById('thrust-btn');
+    const thrustGlow = document.getElementById('thrust-glow');
+
+    function startThrust(e) {
+      if (e) e.preventDefault();
+      initAudio();
+      isThrusting = true;
+      thrustGlow.classList.remove('opacity-0');
+      thrustGlow.classList.add('opacity-30');
+      flareLeft.classList.replace('opacity-25', 'opacity-95');
+      flareRight.classList.replace('opacity-25', 'opacity-95');
+      rampThrusterAudio(true, speed);
+
+      // Camera forward recoil impulse
+      recoilZ = 18;
+
+      if (currentState === STATES.READY) {
+        setState(STATES.TAKEOFF);
+      } else if (currentState === STATES.CRUISING) {
+        setState(STATES.ACCELERATION);
+      }
+    }
+
+    function stopThrust(e) {
+      if (e) e.preventDefault();
+      isThrusting = false;
+      thrustGlow.classList.remove('opacity-30');
+      thrustGlow.classList.add('opacity-0');
+      flareLeft.classList.replace('opacity-95', 'opacity-25');
+      flareRight.classList.replace('opacity-95', 'opacity-25');
+      rampThrusterAudio(false, speed);
+
+      if (currentState === STATES.ACCELERATION || currentState === STATES.SUPERSONIC || currentState === STATES.TAKEOFF) {
+        if (altitude > 100) {
+          setState(STATES.CRUISING);
+        }
+      }
+    }
+
+    thrustBtn.addEventListener('mousedown', startThrust);
+    window.addEventListener('mouseup', stopThrust);
+    thrustBtn.addEventListener('touchstart', startThrust, { passive: false });
+    window.addEventListener('touchend', stopThrust);
+    window.addEventListener('touchcancel', stopThrust);
+
+    function engageLanding() {
+      initAudio();
+      if (currentState === STATES.READY || currentState === STATES.COMPLETED) return;
+      setState(STATES.LANDING);
+    }
+
+    function restartFlightSequence() {
+      initAudio();
+      completedCard.classList.add('hidden');
+      speed = 0;
+      altitude = 1240;
+      energy = 98.4;
+      flightDistance = 0;
+      cameraPitch = 0;
+      cameraRoll = 0;
+      cameraPanX = 0;
+      landingSequenceProgress = 0;
+      sonicBoomTriggered = false;
+      supersonicBadge.classList.add('hidden');
+      stopLowEnergyAlarm();
+      lowEnergyBadge.classList.add('hidden');
+      energyContainer.classList.remove('energy-warning-active', 'bg-error-container/30', 'border', 'border-error/50');
+      telemetryEnergy.classList.remove('text-error');
+      telemetryEnergy.classList.add('text-primary');
+      energyIcon.classList.remove('text-error');
+      energyIcon.classList.add('text-secondary/70');
+      energyTitle.classList.remove('text-error');
+      energyTitle.classList.add('text-secondary/70');
+      energyUnit.classList.remove('text-error');
+      energyUnit.classList.add('text-secondary');
+      setState(STATES.READY);
+    }
+
+    /* ==========================================================================
+       8. MAIN 60FPS FLIGHT SIMULATION & RENDERING LOOP
+       ========================================================================== */
+    let lastTime = performance.now();
+
+    function flightLoop(now) {
+      const dt = Math.min((now - lastTime) / 1000, 0.1);
+      lastTime = now;
+
+      const tiltMagnitude = Math.hypot(joyX, joyY);
+      const deltaX = joyX - prevJoyX;
+      const deltaY = joyY - prevJoyY;
+      const tiltVelocity = dt > 0 ? (Math.hypot(deltaX, deltaY) / dt) : 0;
+      prevJoyX = joyX;
+      prevJoyY = joyY;
+
+      updateTiltAudio(tiltMagnitude, tiltVelocity);
+
+      // G-force calculations
+      let gForceJitterX = 0;
+      let gForceJitterY = 0;
+      if (tiltMagnitude > 0.72) {
+        const severity = (tiltMagnitude - 0.72) / 0.28;
+        const maxGForceShake = 8.5 * severity;
+        gForceJitterX = (Math.random() - 0.5) * maxGForceShake;
+        gForceJitterY = (Math.random() - 0.5) * maxGForceShake;
+        gForceBadge.classList.remove('hidden');
+      } else {
+        gForceBadge.classList.add('hidden');
+      }
+
+      // State acceleration physics
+      if (currentState === STATES.READY) {
+        speed = Math.max(0, speed - 220 * dt);
+        altitude = 1240;
+        sonicBoomTriggered = false;
+      } 
+      else if (currentState === STATES.TAKEOFF) {
+        speed += 360 * dt;
+        altitude += 620 * dt;
+        energy = Math.max(0, energy - 1.2 * dt);
+        flightDistance += speed * dt * 0.28;
+        if (altitude >= 2800) {
+          setState(isThrusting ? STATES.ACCELERATION : STATES.CRUISING);
+        }
+      } 
+      else if (currentState === STATES.ACCELERATION || currentState === STATES.SUPERSONIC) {
+        speed = Math.min(2250, speed + 520 * dt);
+        altitude = Math.min(16500, altitude + 420 * dt);
+        energy = Math.max(0, energy - 2.8 * dt);
+        flightDistance += speed * dt * 0.28;
+
+        if (speed >= MACH_1_SPEED) {
+          if (!sonicBoomTriggered) {
+            triggerSonicBoom();
+          }
+          if (currentState !== STATES.SUPERSONIC) {
+            setState(STATES.SUPERSONIC);
+          }
+          supersonicBadge.classList.remove('hidden');
+          const machNum = (speed / MACH_1_SPEED).toFixed(1);
+          supersonicBadgeText.innerText = `SUPERSONIC // MACH ${machNum}`;
+          
+          if (supersonicHissGain && !isMasterMuted) {
+            supersonicHissGain.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 0.1);
+          }
+        }
+      } 
+      else if (currentState === STATES.CRUISING) {
+        const targetSpeed = 580;
+        speed += (targetSpeed - speed) * (1.6 * dt);
+        energy = Math.max(0, energy - 0.45 * dt);
+        flightDistance += speed * dt * 0.28;
+        if (speed < MACH_1_SPEED) {
+          supersonicBadge.classList.add('hidden');
+          sonicBoomTriggered = false;
+          if (supersonicHissGain && !isMasterMuted) {
+            supersonicHissGain.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + 0.3);
+          }
+        }
+      } 
+      else if (currentState === STATES.LANDING) {
+        speed = Math.max(0, speed - 290 * dt);
+        altitude = Math.max(45, altitude - 680 * dt);
+        landingSequenceProgress = Math.min(1.0, landingSequenceProgress + 0.32 * dt);
+        supersonicBadge.classList.add('hidden');
+        if (speed <= 10 && altitude <= 55) {
+          speed = 0;
+          altitude = 45;
+          landingSequenceProgress = 1.0;
+          setState(STATES.COMPLETED);
+        }
+      }
+
+      // Scripted Cinematic Flight Moments (Cloud dive & Sun breakout)
+      if (flightDistance > nextCloudDiveDist && currentState !== STATES.READY && currentState !== STATES.COMPLETED) {
+        triggerCloudWhispEngulf();
+        nextCloudDiveDist += 2800 + Math.random() * 2000;
+      }
+      if (flightDistance > nextSunBreakoutDist && currentState !== STATES.READY && currentState !== STATES.COMPLETED) {
+        triggerSunBreakout();
+        nextSunBreakoutDist += 5500 + Math.random() * 3000;
+      }
+
+      // Low energy warning
+      if (energy <= 20 && currentState !== STATES.COMPLETED && currentState !== STATES.READY) {
+        if (!isLowEnergyAlertActive) {
+          startLowEnergyAlarm();
+        }
+        lowEnergyBadge.classList.remove('hidden');
+        energyContainer.classList.add('energy-warning-active', 'bg-error-container/30', 'border', 'border-error/50');
+        telemetryEnergy.classList.remove('text-primary');
+        telemetryEnergy.classList.add('text-error');
+        energyIcon.classList.remove('text-secondary/70');
+        energyIcon.classList.add('text-error');
+        energyTitle.classList.remove('text-secondary/70');
+        energyTitle.classList.add('text-error');
+        energyUnit.classList.remove('text-secondary');
+        energyUnit.classList.add('text-error');
+      } else {
+        if (isLowEnergyAlertActive) {
+          stopLowEnergyAlarm();
+        }
+        lowEnergyBadge.classList.add('hidden');
+        energyContainer.classList.remove('energy-warning-active', 'bg-error-container/30', 'border', 'border-error/50');
+        telemetryEnergy.classList.remove('text-error');
+        telemetryEnergy.classList.add('text-primary');
+        energyIcon.classList.remove('text-error');
+        energyIcon.classList.add('text-secondary/70');
+        energyTitle.classList.remove('text-secondary/70');
+        energyTitle.classList.add('text-secondary/70');
+        energyUnit.classList.remove('text-error');
+        energyUnit.classList.add('text-secondary');
+      }
+
+      // Camera 3D Inertia and Horizon Roll
+      const targetPitch = -joyY * 20;
+      const targetRoll = joyX * 25;
+      const targetPan = -joyX * 55;
+
+      cameraPitch += (targetPitch - cameraPitch) * (4.5 * dt);
+      cameraRoll += (targetRoll - cameraRoll) * (5.0 * dt);
+      cameraPanX += (targetPan - cameraPanX) * (3.5 * dt);
+
+      if (shakeIntensity > 0) {
+        shakeIntensity = Math.max(0, shakeIntensity - 35 * dt);
+      }
+      if (recoilZ !== 0) {
+        recoilZ += (0 - recoilZ) * (6.0 * dt);
+      }
+
+      let targetScale = 1.0;
+      let shakeX = (Math.random() - 0.5) * shakeIntensity + gForceJitterX;
+      let shakeY = (Math.random() - 0.5) * shakeIntensity + gForceJitterY;
+
+      if (isThrusting) {
+        targetScale = speed >= MACH_1_SPEED ? 1.14 : 1.08;
+        const speedShake = Math.min(5.0, (speed / 340));
+        shakeX += (Math.random() - 0.5) * speedShake;
+        shakeY += (Math.random() - 0.5) * speedShake;
+      } else {
+        targetScale = 1.0;
+      }
+
+      cameraScale += (targetScale - cameraScale) * (3.0 * dt);
+
+      cameraEl.style.transform = `
+        translate3d(${cameraPanX + shakeX}px, ${shakeY}px, ${recoilZ}px)
+        rotateX(${cameraPitch}deg)
+        rotateZ(${-cameraRoll}deg)
+        scale(${cameraScale})
+      `;
+
+      reticleHorizon.style.transform = `rotate(${cameraRoll * 0.85}deg) translateY(${cameraPitch * 1.5}px)`;
+      reticleContainer.style.transform = `translate3d(${-joyX * 14 + gForceJitterX * 0.5}px, ${joyY * 12 + gForceJitterY * 0.5}px, 0)`;
+
+      const machVal = (speed / MACH_1_SPEED).toFixed(1);
+      telemetrySpeed.innerText = Math.round(speed).toLocaleString();
+      telemetryMach.innerText = `M ${machVal}`;
+      telemetryAlt.innerText = Math.round(altitude).toLocaleString();
+      telemetryEnergy.innerText = Math.round(energy).toString();
+
+      // ================= CLEAR & RENDER 2D CANVAS 60FPS GRAPHICS =================
+      ctx.clearRect(0, 0, W, H);
+      const cx = W / 2 + cameraPanX * 0.4 + shakeX;
+      const cy = H / 2 + cameraPitch * 1.5 + shakeY;
+      const rollRad = (-cameraRoll * Math.PI) / 180;
+
+      // 1. Atmospheric God Rays
+      drawAtmosphericGodRays(ctx, cx, cy, cameraRoll, cameraPitch);
+
+      // 2. Volumetric Cloud Banks with 3D Depth Parallax
+      const cloudSpeedUnits = speed > 0 ? (speed * 0.85 + 60) : 35;
+      for (let i = 0; i < clouds.length; i++) {
+        clouds[i].update(cloudSpeedUnits, dt, rollRad, cameraPitch);
+        clouds[i].draw(ctx, cx, cy, rollRad);
+      }
+
+      // 3. High-Tech Landing Pad (Renders if in Landing phase)
+      drawLandingPlatform(ctx, cx, cy, landingSequenceProgress, rollRad);
+
+      // 4. Directional Speed Streaks & Condensation Trails
+      if (speed > 350) {
+        for (let s of streaks) {
+          s.update(speed, dt);
+          s.draw(ctx, cx, cy);
+        }
+      }
+
+      // 5. Repulsor Plasma Energy Particles
+      if (isThrusting || speed > 100) {
+        for (let sp of repulsorSparks) {
+          sp.update(dt);
+          sp.draw(ctx);
+        }
+      }
+
+      // 6. Mach Shockwaves
+      for (let i = machShockwaves.length - 1; i >= 0; i--) {
+        machShockwaves[i].update(dt);
+        machShockwaves[i].draw(ctx);
+        if (machShockwaves[i].alpha <= 0) {
+          machShockwaves.splice(i, 1);
+        }
+      }
+
+      requestAnimationFrame(flightLoop);
+    }
+
+    // Start 60fps Flight Physics Engine
+    requestAnimationFrame(flightLoop);
+
+    // Initial Interactions to clean unlock Audio
+    window.addEventListener('click', () => { initAudio(); }, { once: true });
+    window.addEventListener('touchstart', () => { initAudio(); }, { once: true });
+  </script>
+<!-- ================= ABORT CONFIRMATION MODAL ================= --><div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md transition-opacity duration-200 pointer-events-auto" id="abort-modal"><div class="relative w-full max-w-[320px] rounded-2xl bg-[#091522]/95 border border-red-500/40 p-4 text-center shadow-[0_0_30px_rgba(239,68,68,0.25)] flex flex-col items-center gap-3"><div class="w-10 h-10 rounded-full bg-red-500/15 border border-red-500/40 flex items-center justify-center shadow-[0_0_12px_rgba(239,68,68,0.3)]"><span class="material-symbols-outlined text-red-400 text-xl font-bold animate-pulse">emergency_home</span></div><div class="flex flex-col gap-1"><h4 class="font-mono font-bold text-sm tracking-wider uppercase text-red-300">ABORT CURRENT OPERATION?</h4><p class="text-[11px] font-sans text-secondary/80 leading-relaxed">Terminates thrusters, sonic audio, and returns safely to Command Wheel.</p></div><div class="flex items-center gap-2.5 w-full mt-1"><button class="flex-1 py-2 rounded-xl hud-glass hover:bg-surface-container-high text-secondary text-xs font-mono font-semibold tracking-wider uppercase transition-all active:scale-95 border border-outline-variant/50" onclick="closeAbortModal()">CANCEL</button><button class="flex-1 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 border border-red-500/60 text-red-200 text-xs font-mono font-bold tracking-wider uppercase transition-all active:scale-95 shadow-[0_0_12px_rgba(239,68,68,0.3)]" onclick="confirmAbortSequence()">CONFIRM ABORT</button></div></div></div><!-- ================= GLOBAL UNIFIED 5-ITEM BOTTOM NAVBAR ================= --><!-- ABORT & MODAL CONTROLLER SCRIPT --><script>function openAbortModal(){const m=document.getElementById('abort-modal');if(m){m.classList.remove('hidden');}}function closeAbortModal(){const m=document.getElementById('abort-modal');if(m){m.classList.add('hidden');}}function confirmAbortSequence(){try{if(audioCtx){if(masterGain){masterGain.gain.setValueAtTime(0.0001,audioCtx.currentTime+0.05);}setTimeout(()=>{audioCtx.suspend();},100);}if('speechSynthesis' in window){window.speechSynthesis.cancel();}isThrusting=false;}catch(e){}window.history.back();}</script>
+
+
+</body></html>

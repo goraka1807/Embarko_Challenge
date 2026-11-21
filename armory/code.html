@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<meta content="mobile_tab" name="shell-type"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=Sora:wght@400;500;700&amp;family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {darkMode: "class", theme: {extend: {colors: {"on-secondary-fixed-variant": "#004c69", "on-secondary-fixed": "#001e2c", "tertiary-fixed-dim": "#ffb95f", "surface-container-low": "#0d1c2d", "on-primary-fixed-variant": "#004f58", tertiary: "#ffe9d3", "secondary-fixed-dim": "#7bd0ff", "surface-bright": "#2c3a4c", "on-primary-container": "#00626e", "surface-container": "#122131", "surface-container-highest": "#273647", "on-tertiary-container": "#7e4e00", "secondary-fixed": "#c4e7ff", "on-primary-fixed": "#001f24", "on-primary": "#00363d", "inverse-surface": "#d4e4fa", secondary: "#7bd0ff", "on-background": "#d4e4fa", "surface-tint": "#00daf3", "surface-container-lowest": "#010f1f", "on-error-container": "#ffdad6", "on-tertiary-fixed-variant": "#653e00", "outline-variant": "#3b494c", "inverse-primary": "#006875", "surface-dim": "#051424", outline: "#849396", "error-container": "#93000a", "surface-variant": "#273647", "on-tertiary-fixed": "#2a1700", "on-tertiary": "#472a00", "primary-fixed": "#9cf0ff", "primary-container": "#00e5ff", "on-surface-variant": "#bac9cc", "inverse-on-surface": "#233143", "tertiary-fixed": "#ffddb8", "primary-fixed-dim": "#00daf3", "on-secondary-container": "#00374d", "on-error": "#690005", background: "#051424", "on-surface": "#d4e4fa", "tertiary-container": "#ffc681", "on-secondary": "#00354a", "surface-container-high": "#1c2b3c", error: "#ffb4ab", "secondary-container": "#00a6e0", surface: "#051424", primary: "#c3f5ff"}, fontFamily: {"label-lg": ["JetBrains Mono"], "headline-lg": ["Space Grotesk"], "headline-md": ["Space Grotesk"], "headline-sm": ["Space Grotesk"], "body-md": ["Inter"], "label-md": ["JetBrains Mono"], "body-sm": ["Inter"], "label-sm": ["JetBrains Mono"], "body-lg": ["Inter"], headline: ["Space Grotesk"], display: ["Space Grotesk"], body: ["Sora"], label: ["Inter"]}, fontSize: {}, borderRadius: {DEFAULT: "1rem", lg: "2rem", xl: "3rem", full: "9999px"}}}}
+  </script>
+<style>
+    @layer base {
+      html, body {
+        width: 100vw;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+        background-color: #050b12;
+        color: #d4e4fa;
+        overscroll-behavior: none;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+      .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+    }
+    ::-webkit-scrollbar { display: none; }
+    .carousel-item {
+      transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.25, 1), opacity 0.35s ease;
+      touch-action: pan-y;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body-md flex flex-col min-h-screen relative selection:bg-primary-container selection:text-on-primary-fixed antialiased overflow-x-hidden">
+<!-- Top Fixed Header -->
+<header class="fixed top-0 w-full z-50 pt-safe bg-[#050b12]/80 backdrop-blur-md border-b border-white/[0.04]">
+<div class="h-14 px-5 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+<span class="font-label-sm text-[11px] tracking-[0.2em] text-white/90 uppercase font-medium">ARMOURY GALLERY</span>
+</div>
+<div class="flex items-center gap-4"><button aria-label="Abort Operation" class="px-2.5 py-1 rounded-full bg-red-500/10 hover:bg-red-500/20 active:scale-95 border border-red-500/30 flex items-center gap-1.5 transition-all" id="abort-btn"><span class="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse"></span><span class="font-label-sm text-[10px] tracking-[0.16em] text-red-400 font-semibold uppercase">ABORT</span></button>
+<span class="font-label-sm text-[11px] tracking-widest text-white/40 font-mono">SYS // 04</span>
+<button aria-label="Armoury Settings" class="w-7 h-7 rounded-full bg-white/[0.05] border border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[15px] text-white/70">tune</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex flex-col relative w-full pt-14 pb-20 bg-[#050b12] min-h-screen flex-1 justify-between select-none">
+<!-- Drag & Slide Carousel Area -->
+<section class="relative w-full flex-1 flex flex-col items-center justify-center overflow-hidden min-h-[380px] max-h-[460px]" id="carousel-container" style="touch-action: pan-y;">
+<!-- Subtle Holographic Grid Backdrop -->
+<div class="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_50%,rgba(0,218,243,0.09)_0%,transparent_70%)]"></div>
+<div class="absolute inset-0 pointer-events-none bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:32px_32px] opacity-40"></div>
+<!-- Hologram Pedestal Base Rings -->
+<div class="absolute bottom-6 w-56 h-10 rounded-full bg-cyan-400/20 blur-xl pointer-events-none"></div>
+<div class="absolute bottom-9 w-48 h-5 rounded-full border border-cyan-400/40 bg-cyan-500/10 pointer-events-none shadow-[0_0_15px_rgba(0,218,243,0.2)]"></div>
+<!-- Track containing the 3 suits -->
+<div class="relative w-full h-[360px] flex items-center cursor-grab active:cursor-grabbing will-change-transform" id="carousel-track">
+<!-- Suit 0: Mark I -->
+<div class="carousel-item absolute top-0 left-0 w-full h-full flex items-center justify-center" data-index="0" style="transition: none; transform: translateX(-280.8px) scale(0.82); opacity: 0.35; z-index: 7; pointer-events: auto;">
+<div class="suit-wrapper relative flex items-center justify-center h-full max-h-[350px] transition-all duration-300">
+<img alt="MARK I Prototype Tactical Armor" class="h-[330px] max-h-[751px] w-auto object-contain select-none pointer-events-none filter drop-shadow-[0_12px_28px_rgba(0,218,243,0.25)]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpMTc1Dmhk0IOd-ALnlPCbWYVD8wV4DCs30iL79lk1Xsf8yeBVndLFXwfubKRUTmJoMGGpySvCmmyi6Nsaw5Vj4QLEtN0M_fU-ClMhtF9VQ_vQtmLEQOSm2pLOPGYQTf9PjLyxLB4bUGA0-AaYTlN3ef_9gtkgsYhWVxaIVkgoiFGrb5b7aZupAcQYEZZb55WJsB8TfjSPA2LCsziPW9uO95AO81XGcVl7BR801kIk28oK-G_5I_TS"/>
+</div>
+</div>
+<!-- Suit 1: Mark V -->
+<div class="carousel-item absolute top-0 left-0 w-full h-full flex items-center justify-center" data-index="1" style="transition: none; transform: translateX(0px) scale(1.05); opacity: 1; z-index: 10; pointer-events: auto;">
+<div class="suit-wrapper relative flex items-center justify-center h-full max-h-[350px] transition-all duration-300">
+<img alt="MARK V Emergency Suitcase Armour" class="h-[330px] max-h-[751px] w-auto object-contain select-none pointer-events-none filter drop-shadow-[0_12px_28px_rgba(0,218,243,0.25)]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQnbeGSRc3GI1UmqDe85enKMmP3hbiThJEQ89w5d_swUsiKUIP1crxJT4PjnYCcb5jVS1pAaoxEGsvbRvtiR4prmQjAvFOwZBtuHWVYb9QAIz5ftPu6vQTZCgVSlsyleoc1rN2tjtyT5vS9d-WQwLS-vqR9JenszvzP-xK8PvRKOLIEJSFFyAD9O88u2_loFNeJ49JD5Ne39BwqE9CKmEhykGQTNZzr7xiOw9XFltJ53nxJB1k-uXb"/>
+</div>
+</div>
+<!-- Suit 2: Hulkbuster -->
+<div class="carousel-item absolute top-0 left-0 w-full h-full flex items-center justify-center" data-index="2" style="transition: none; transform: translateX(280.8px) scale(0.82); opacity: 0.35; z-index: 7; pointer-events: auto;">
+<div class="suit-wrapper relative flex items-center justify-center h-full max-h-[350px] transition-all duration-300">
+<img alt="HULKBUSTER MK-XLIV Heavy Combat Exoskeleton" class="h-[330px] max-h-[751px] w-auto object-contain select-none pointer-events-none filter drop-shadow-[0_12px_28px_rgba(0,218,243,0.25)]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuACtYaUJwWBFyqvNopdRutbF_aaF6gRXhzyhleAHixA9efReiZU6GjbdogoMAzt739CKnQ4SqRBJpahNSn1MbNqDQ04qFeGP6SlP_qKD_KgiGEGoqb6-80lc5jteS9l5xB903oe-xFWikn2tJXUfuFxzrbSarTDpmUUd6daDTYx_iuDXnDjS_PH7Z4L_nAcnumz4fiTtgWWbIzmEOwG0DAzt8W1recaL5TAlPE3TVkD6W_bE9JcFMe3"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Info, Stats & Controls Section -->
+<section class="relative z-20 w-full px-6 pb-4 flex flex-col gap-4">
+<!-- Suit Title & Carousel Chevrons -->
+<div class="flex items-center justify-between w-full border-b border-white/[0.06] pb-3">
+<button aria-label="Previous Suit" class="w-10 h-10 -ml-2 flex items-center justify-center text-white/40 hover:text-white transition-colors active:scale-95" id="prev-suit-btn">
+<span class="material-symbols-outlined text-[24px]">chevron_left</span>
+</button>
+<div class="flex flex-col items-center text-center px-2">
+<h2 class="font-headline-md text-[18px] tracking-[0.16em] uppercase font-semibold text-white transition-opacity duration-200" id="suit-title">MARK V</h2>
+<p class="font-label-sm text-[10px] tracking-[0.22em] text-white/40 uppercase mt-0.5 transition-opacity duration-200" id="suit-subtitle">EMERGENCY SUITCASE ARMOUR</p>
+</div>
+<button aria-label="Next Suit" class="w-10 h-10 -mr-2 flex items-center justify-center text-white/40 hover:text-white transition-colors active:scale-95" id="next-suit-btn">
+<span class="material-symbols-outlined text-[24px]">chevron_right</span>
+</button>
+</div>
+<!-- Pagination Indicator Dots -->
+<div class="flex items-center justify-center gap-1.5" id="carousel-dots"><span class="w-1.5 h-1.5 rounded-full bg-white/20 transition-all duration-300 hover:bg-white/40 cursor-pointer" data-dot="0"></span><span class="w-5 h-1.5 rounded-full bg-cyan-400 transition-all duration-300 shadow-[0_0_8px_rgba(0,218,243,0.6)] cursor-pointer" data-dot="1"></span><span class="w-1.5 h-1.5 rounded-full bg-white/20 transition-all duration-300 hover:bg-white/40 cursor-pointer" data-dot="2"></span></div>
+<!-- 4-Stat Telemetry Indicators -->
+<div class="grid grid-cols-4 gap-3 py-1">
+<div class="flex flex-col">
+<div class="flex items-baseline justify-between mb-1.5">
+<span class="font-label-sm text-[9px] tracking-wider text-white/40 uppercase">DEF</span>
+<span class="font-label-sm text-[12px] font-mono text-white" id="val-defence">78%</span>
+</div>
+<div class="w-full h-[2px] bg-white/[0.08] rounded-full overflow-hidden">
+<div class="h-full bg-cyan-300 rounded-full transition-all duration-500 ease-out shadow-[0_0_6px_rgba(0,218,243,0.5)]" id="bar-defence" style="width: 78%"></div>
+</div>
+</div>
+<div class="flex flex-col">
+<div class="flex items-baseline justify-between mb-1.5">
+<span class="font-label-sm text-[9px] tracking-wider text-white/40 uppercase">MOB</span>
+<span class="font-label-sm text-[12px] font-mono text-white" id="val-mobility">96%</span>
+</div>
+<div class="w-full h-[2px] bg-white/[0.08] rounded-full overflow-hidden">
+<div class="h-full bg-cyan-300 rounded-full transition-all duration-500 ease-out shadow-[0_0_6px_rgba(0,218,243,0.5)]" id="bar-mobility" style="width: 96%"></div>
+</div>
+</div>
+<div class="flex flex-col">
+<div class="flex items-baseline justify-between mb-1.5">
+<span class="font-label-sm text-[9px] tracking-wider text-white/40 uppercase">NRG</span>
+<span class="font-label-sm text-[12px] font-mono text-white" id="val-energy">88%</span>
+</div>
+<div class="w-full h-[2px] bg-white/[0.08] rounded-full overflow-hidden">
+<div class="h-full bg-cyan-300 rounded-full transition-all duration-500 ease-out shadow-[0_0_6px_rgba(0,218,243,0.5)]" id="bar-energy" style="width: 88%"></div>
+</div>
+</div>
+<div class="flex flex-col">
+<div class="flex items-baseline justify-between mb-1.5">
+<span class="font-label-sm text-[9px] tracking-wider text-white/40 uppercase">FLT</span>
+<span class="font-label-sm text-[12px] font-mono text-white" id="val-flight">92%</span>
+</div>
+<div class="w-full h-[2px] bg-white/[0.08] rounded-full overflow-hidden">
+<div class="h-full bg-cyan-300 rounded-full transition-all duration-500 ease-out shadow-[0_0_6px_rgba(0,218,243,0.5)]" id="bar-flight" style="width: 92%"></div>
+</div>
+</div>
+</div>
+<!-- Action Button -->
+<div class="w-full pt-1">
+<button class="w-full h-12 rounded-full bg-gradient-to-r from-cyan-400 via-cyan-300 to-cyan-400 hover:brightness-110 text-[#002830] font-headline-sm text-[12px] tracking-[0.24em] font-bold uppercase flex items-center justify-center transition-all duration-200 active:scale-[0.98] shadow-[0_0_24px_rgba(0,218,243,0.35)]" id="equip-btn">
+<span>EQUIP SUIT</span>
+</button>
+</div>
+</section>
+<!-- Interactive Carousel Script -->
+<script>
+      (function initArmouryCarousel() {
+        const suits = [
+          {
+            id: "MARK I",
+            title: "MARK I",
+            sub: "FIRST GENERATION PROTOTYPE",
+            def: 84,
+            mob: 62,
+            nrg: 75,
+            flt: 40
+          },
+          {
+            id: "MARK V",
+            title: "MARK V",
+            sub: "EMERGENCY SUITCASE ARMOUR",
+            def: 78,
+            mob: 96,
+            nrg: 88,
+            flt: 92
+          },
+          {
+            id: "HULKBUSTER MK-XLIV",
+            title: "HULKBUSTER MK-XLIV",
+            sub: "HEAVY COMBAT EXOSKELETON",
+            def: 99,
+            mob: 55,
+            nrg: 98,
+            flt: 80
+          }
+        ];
+
+        let currentIndex = 1; // Start focused on Mark V
+        let isDragging = false;
+        let startX = 0;
+        let currentTranslateX = 0;
+        let dragOffset = 0;
+
+        const container = document.getElementById("carousel-container");
+        const track = document.getElementById("carousel-track");
+        const items = document.querySelectorAll(".carousel-item");
+        const titleEl = document.getElementById("suit-title");
+        const subEl = document.getElementById("suit-subtitle");
+        const valDef = document.getElementById("val-defence");
+        const valMob = document.getElementById("val-mobility");
+        const valNrg = document.getElementById("val-energy");
+        const valFlt = document.getElementById("val-flight");
+
+        const barDef = document.getElementById("bar-defence");
+        const barMob = document.getElementById("bar-mobility");
+        const barNrg = document.getElementById("bar-energy");
+        const barFlt = document.getElementById("bar-flight");
+
+        const dotsContainer = document.getElementById("carousel-dots");
+        const prevBtn = document.getElementById("prev-suit-btn");
+        const nextBtn = document.getElementById("next-suit-btn");
+        const equipBtn = document.getElementById("equip-btn");
+
+        function getSpacing() {
+          const width = container.clientWidth || window.innerWidth;
+          // Space out so adjacent suits are visible at left and right edges
+          return Math.min(width * 0.72, 290);
+        }
+
+        function renderPositions(offsetPx = 0, animated = true) {
+          const spacing = getSpacing();
+
+          items.forEach((item, idx) => {
+            const diff = idx - currentIndex;
+            const targetX = diff * spacing + offsetPx;
+            const distFromCenter = Math.abs(diff + (offsetPx / spacing));
+
+            // Center: scale 1.05, opacity 1. Adjacent: scale 0.82, opacity 0.35
+            const scale = Math.max(0.8, 1.05 - (distFromCenter * 0.23));
+            const opacity = Math.max(0.25, 1 - (distFromCenter * 0.65));
+            const zIndex = 10 - Math.round(distFromCenter * 3);
+
+            item.style.transition = animated ? "transform 0.38s cubic-bezier(0.2, 0.8, 0.25, 1), opacity 0.38s ease" : "none";
+            item.style.transform = `translateX(${targetX}px) scale(${scale})`;
+            item.style.opacity = opacity;
+            item.style.zIndex = zIndex;
+            item.style.pointerEvents = "auto";
+          });
+        }
+
+        function updateTelemetry(index) {
+          const s = suits[index];
+          if (!s) return;
+
+          if (titleEl) titleEl.textContent = s.title;
+          if (subEl) subEl.textContent = s.sub;
+
+          if (valDef) valDef.textContent = s.def + "%";
+          if (valMob) valMob.textContent = s.mob + "%";
+          if (valNrg) valNrg.textContent = s.nrg + "%";
+          if (valFlt) valFlt.textContent = s.flt + "%";
+
+          if (barDef) barDef.style.width = s.def + "%";
+          if (barMob) barMob.style.width = s.mob + "%";
+          if (barNrg) barNrg.style.width = s.nrg + "%";
+          if (barFlt) barFlt.style.width = s.flt + "%";
+
+          if (dotsContainer) {
+            dotsContainer.innerHTML = suits.map((_, i) =>
+              i === index
+                ? '<span class="w-5 h-1.5 rounded-full bg-cyan-400 transition-all duration-300 shadow-[0_0_8px_rgba(0,218,243,0.6)] cursor-pointer" data-dot="' + i + '"></span>'
+                : '<span class="w-1.5 h-1.5 rounded-full bg-white/20 transition-all duration-300 hover:bg-white/40 cursor-pointer" data-dot="' + i + '"></span>'
+            ).join('');
+            
+            // Reattach dot clicks
+            dotsContainer.querySelectorAll("[data-dot]").forEach(dot => {
+              dot.addEventListener("click", (e) => {
+                const targetIdx = parseInt(e.currentTarget.getAttribute("data-dot"), 10);
+                setIndex(targetIdx);
+              });
+            });
+          }
+        }
+
+        function setIndex(index, animated = true) {
+          currentIndex = Math.max(0, Math.min(suits.length - 1, index));
+          dragOffset = 0;
+          renderPositions(0, animated);
+          updateTelemetry(currentIndex);
+        }
+
+        // Pointer / Touch Handling
+        function onPointerDown(e) {
+          isDragging = true;
+          startX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+          dragOffset = 0;
+          items.forEach(item => item.style.transition = "none");
+        }
+
+        function onPointerMove(e) {
+          if (!isDragging) return;
+          const currentX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+          dragOffset = currentX - startX;
+          // Apply boundary resistance
+          if ((currentIndex === 0 && dragOffset > 0) || (currentIndex === suits.length - 1 && dragOffset < 0)) {
+            dragOffset *= 0.35;
+          }
+          renderPositions(dragOffset, false);
+        }
+
+        function onPointerUp() {
+          if (!isDragging) return;
+          isDragging = false;
+          const threshold = 45; // drag threshold
+          if (dragOffset < -threshold && currentIndex < suits.length - 1) {
+            currentIndex += 1;
+          } else if (dragOffset > threshold && currentIndex > 0) {
+            currentIndex -= 1;
+          }
+          setIndex(currentIndex, true);
+        }
+
+        container.addEventListener("pointerdown", onPointerDown);
+        window.addEventListener("pointermove", onPointerMove);
+        window.addEventListener("pointerup", onPointerUp);
+        window.addEventListener("pointercancel", onPointerUp);
+
+        // Click on adjacent suit to navigate
+        items.forEach((item, idx) => {
+          item.addEventListener("click", () => {
+            if (Math.abs(dragOffset) < 5 && idx !== currentIndex) {
+              setIndex(idx, true);
+            }
+          });
+        });
+
+        // Prev & Next Buttons
+        if (prevBtn) {
+          prevBtn.addEventListener("click", () => {
+            if (currentIndex > 0) {
+              setIndex(currentIndex - 1, true);
+            } else {
+              setIndex(suits.length - 1, true);
+            }
+          });
+        }
+
+        if (nextBtn) {
+          nextBtn.addEventListener("click", () => {
+            if (currentIndex < suits.length - 1) {
+              setIndex(currentIndex + 1, true);
+            } else {
+              setIndex(0, true);
+            }
+          });
+        }
+
+        // Dot buttons
+        if (dotsContainer) {
+          dotsContainer.querySelectorAll("[data-dot]").forEach(dot => {
+            dot.addEventListener("click", (e) => {
+              const targetIdx = parseInt(e.currentTarget.getAttribute("data-dot"), 10);
+              setIndex(targetIdx);
+            });
+          });
+        }
+
+        // Equip Button Action
+        if (equipBtn) {
+          equipBtn.addEventListener("click", () => {
+            const currentSuit = suits[currentIndex];
+            const originalHtml = equipBtn.innerHTML;
+            equipBtn.innerHTML = `<span class="tracking-[0.2em] text-white flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">check_circle</span> ${currentSuit.id} EQUIPPED</span>`;
+            equipBtn.classList.add("from-cyan-500", "to-teal-400", "shadow-[0_0_30px_rgba(0,218,243,0.6)]");
+            setTimeout(() => {
+              equipBtn.innerHTML = originalHtml;
+              equipBtn.classList.remove("from-cyan-500", "to-teal-400", "shadow-[0_0_30px_rgba(0,218,243,0.6)]");
+            }, 1800);
+          });
+        }
+
+        // Handle resize / orientation
+        window.addEventListener("resize", () => {
+          renderPositions(0, false);
+        });
+
+        // Initialize state
+        setIndex(1, false);
+      })();
+    </script>
+</main>
+<!-- Persistent Bottom Nav -->
+<nav class="fixed bottom-0 w-full z-50 pb-safe backdrop-blur-xl bg-[#030914]/85 border-t border-cyan-500/20 py-2.5 px-4"><div class="flex justify-around items-center h-12 max-w-md mx-auto"><a aria-label="Home" class="flex flex-col items-center justify-center p-2 text-white/40 hover:text-white/80 transition-colors" data-path="hud-command" href="#"><span class="material-symbols-outlined text-[22px]">radio_button_checked</span></a><a aria-current="page" aria-label="Armoury" class="relative flex flex-col items-center justify-center p-2 text-cyan-300" data-path="armoury-control" href="#"><span class="material-symbols-outlined text-[22px] drop-shadow-[0_0_8px_rgba(0,218,243,0.7)]">shield</span><span class="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(0,218,243,0.8)]"></span></a><a aria-label="Workbench" class="flex flex-col items-center justify-center p-2 text-white/40 hover:text-white/80 transition-colors" data-path="workbench" href="#"><span class="material-symbols-outlined text-[22px]">build</span></a><a aria-label="Flight" class="flex flex-col items-center justify-center p-2 text-white/40 hover:text-white/80 transition-colors" data-path="flight" href="#"><span class="material-symbols-outlined text-[22px]">rocket_launch</span></a><a aria-label="Visor" class="flex flex-col items-center justify-center p-2 text-white/40 hover:text-white/80 transition-colors" data-path="visor" href="#"><span class="material-symbols-outlined text-[22px]">visibility</span></a></div></nav>
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md transition-opacity duration-200 opacity-0 pointer-events-none" id="abort-modal"><div class="w-full max-w-xs rounded-2xl bg-[#091322] border border-red-500/30 p-5 shadow-[0_0_30px_rgba(239,68,68,0.2)] flex flex-col items-center text-center"><div class="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mb-3 text-red-400"><span class="material-symbols-outlined text-[22px]">warning</span></div><h3 class="font-headline-sm text-[16px] text-white font-semibold tracking-wide mb-1">ABORT OPERATION</h3><p class="font-label-sm text-[11px] text-white/60 tracking-wider mb-5">Abort current suit configuration and return to command deck?</p><div class="flex items-center gap-2.5 w-full"><button class="flex-1 h-9 rounded-full border border-white/10 hover:bg-white/10 active:scale-95 font-label-sm text-[11px] tracking-wider text-white/70 transition-all uppercase" id="abort-cancel-btn">CANCEL</button><button class="flex-1 h-9 rounded-full bg-red-500/20 hover:bg-red-500/30 active:scale-95 border border-red-500/50 font-label-sm text-[11px] tracking-wider text-red-300 font-semibold transition-all uppercase shadow-[0_0_12px_rgba(239,68,68,0.3)]" id="abort-confirm-btn">CONFIRM</button></div></div></div><script>(function setupAbortFlow(){const abortBtn=document.getElementById('abort-btn');const abortModal=document.getElementById('abort-modal');const cancelBtn=document.getElementById('abort-cancel-btn');const confirmBtn=document.getElementById('abort-confirm-btn');function openModal(){if(abortModal){abortModal.classList.remove('opacity-0','pointer-events-none');abortModal.classList.add('opacity-100');}}function closeModal(){if(abortModal){abortModal.classList.remove('opacity-100');abortModal.classList.add('opacity-0','pointer-events-none');}}if(abortBtn){abortBtn.addEventListener('click',openModal);}if(cancelBtn){cancelBtn.addEventListener('click',closeModal);}if(confirmBtn){confirmBtn.addEventListener('click',function(){closeModal();const prevBtn=document.getElementById('prev-suit-btn');if(prevBtn){prevBtn.click();}const equipBtn=document.getElementById('equip-btn');if(equipBtn){equipBtn.innerHTML='<span>ABORTED // RETURNING</span>';setTimeout(function(){equipBtn.innerHTML='<span>EQUIP SUIT</span>';},1500);}});}})();</script></body></html>
