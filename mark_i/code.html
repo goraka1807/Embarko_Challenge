@@ -3,7 +3,7 @@
       min-height: max(884px, 100dvh);
     }
   </style>
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"><style>.material-symbols-outlined, .material-icons { font-family: 'Material Symbols Outlined' !important; font-weight: normal; font-style: normal; line-height: 1; text-transform: none; letter-spacing: normal; word-wrap: normal; white-space: nowrap; direction: ltr; -webkit-font-smoothing: antialiased; display: inline-block; }</style></head><body class="bg-[#040910] text-on-surface font-body-md w-full h-full relative select-none antialiased overflow-hidden flex flex-col justify-between"><svg aria-hidden="true" class="inline-defs-container" style="position:absolute;width:0;height:0;overflow:hidden"></svg>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"><style>.material-symbols-outlined, .material-icons { font-family: 'Material Symbols Outlined' !important; font-weight: normal; font-style: normal; line-height: 1; text-transform: none; letter-spacing: normal; word-wrap: normal; white-space: nowrap; direction: ltr; -webkit-font-smoothing: antialiased; display: inline-block; }</style></head><body class="bg-[#040910] text-on-surface font-body-md w-full h-full relative select-none antialiased overflow-hidden flex flex-col justify-between" data-screen="mark_i"><svg aria-hidden="true" class="inline-defs-container" style="position:absolute;width:0;height:0;overflow:hidden"></svg>
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
 <meta content="mobile_tab" name="shell-type">
@@ -618,6 +618,30 @@
     setInterval(updateClock, 1000);
     updateClock();
 </script>
+<script src="../screen-bridge.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('nav a').forEach((link) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        const label = (link.textContent || '').trim().toUpperCase();
+        if (!window.JarvisBridge) return;
+        if (label === 'COMMAND') window.JarvisBridge.navigate('wheel', { destination: 'wheel' });
+        if (label === 'ARMOURY') window.JarvisBridge.navigate('armoury', { destination: 'armoury' });
+        if (label === 'WORKBENCH') window.JarvisBridge.navigate('mark_i', { destination: 'mark_i' });
+        if (label === 'FLIGHT') window.JarvisBridge.navigate('flight', { destination: 'flight' });
+      });
+    });
 
+    const abortLink = Array.from(document.querySelectorAll('nav a')).find((link) =>
+      (link.textContent || '').trim().toUpperCase() === 'ABORT'
+    );
+    if (abortLink) {
+      abortLink.addEventListener('click', () => {
+        if (window.JarvisBridge) window.JarvisBridge.abort({ from: 'mark_i' });
+      });
+    }
+  });
+</script>
 
 </body></html>
