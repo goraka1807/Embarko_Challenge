@@ -1,0 +1,1328 @@
+<!DOCTYPE html><html class="h-full w-full bg-black text-slate-100 antialiased overflow-hidden select-none" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
+<title>VISOR - Live Holographic Biometric HUD</title>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Orbitron & Share Tech Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&amp;family=Share+Tech+Mono&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script>
+    tailwind.config = {theme: {extend: {colors: {hud: {cyan: "#00F0FF", ice: "#7BD0FF", glow: "#00E5FF", dark: "#010409", alert: "#FF3B30", gold: "#F59E0B"}, "surface-container-high": "#1c2b3c", "surface-dim": "#051424", "primary-container": "#00e5ff", "on-primary-fixed-variant": "#004f58", "on-tertiary-container": "#7e4e00", "tertiary-fixed": "#ffddb8", "tertiary-container": "#ffc681", outline: "#849396", "surface-tint": "#00daf3", "surface-bright": "#2c3a4c", tertiary: "#ffe9d3", "secondary-fixed": "#c4e7ff", "surface-variant": "#273647", "on-tertiary": "#472a00", surface: "#051424", "on-secondary-fixed": "#001e2c", "secondary-fixed-dim": "#7bd0ff", "on-primary-fixed": "#001f24", "primary-fixed-dim": "#00daf3", "on-tertiary-fixed-variant": "#653e00", "on-background": "#d4e4fa", "on-primary": "#00363d", "on-error-container": "#ffdad6", "surface-container-low": "#0d1c2d", "outline-variant": "#3b494c", "inverse-on-surface": "#233143", "inverse-primary": "#006875", "surface-container-lowest": "#010f1f", "on-secondary-fixed-variant": "#004c69", "on-primary-container": "#00626e", "on-tertiary-fixed": "#2a1700", "on-secondary": "#00354a", "on-surface": "#d4e4fa", "on-secondary-container": "#00374d", background: "#051424", "inverse-surface": "#d4e4fa", "on-surface-variant": "#bac9cc", "primary-fixed": "#9cf0ff", "tertiary-fixed-dim": "#ffb95f", "surface-container": "#122131", secondary: "#7bd0ff", "error-container": "#93000a", "secondary-container": "#00a6e0", error: "#ffb4ab", "surface-container-highest": "#273647", "on-error": "#690005", primary: "#c3f5ff"}, fontFamily: {orbitron: ["Orbitron", "sans-serif"], mono: ["\"Share Tech Mono\"", "monospace"], headline: ["Space Grotesk"], display: ["Space Grotesk"], body: ["Sora"], label: ["Inter"]}, animation: {"spin-slow": "spin 18s linear infinite", "spin-reverse": "spinReverse 14s linear infinite", "spin-fast": "spin 4s linear infinite", "spin-fast-reverse": "spinReverse 3.2s linear infinite", "laser-sweep": "laserSweep 2.2s ease-in-out infinite alternate", "pulse-subtle": "pulseSubtle 2.5s ease-in-out infinite"}, keyframes: {spinReverse: {"0%": {transform: "rotate(360deg)"}, "100%": {transform: "rotate(0deg)"}}, laserSweep: {"0%": {top: "18%", opacity: "0.9"}, "50%": {opacity: "1"}, "100%": {top: "78%", opacity: "0.9"}}, pulseSubtle: {"0%, 100%": {opacity: "0.4"}, "50%": {opacity: "0.85"}}}, fontSize: {}, borderRadius: {DEFAULT: "1rem", lg: "2rem", xl: "3rem", full: "9999px"}}}};
+  </script>
+<style>
+    /* Cinematic Vignette feathering video to pitch-black (#000000) edges */
+    .camera-vignette {
+      background: radial-gradient(circle at 50% 46%, rgba(0,0,0,0) 25%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.92) 80%, #000000 98%);
+    }
+
+    /* Authentic Holo Scanline texture */
+    .scanlines {
+      background: linear-gradient(
+        to bottom,
+        rgba(255,255,255,0),
+        rgba(255,255,255,0) 50%,
+        rgba(0, 240, 255, 0.035) 50%,
+        rgba(0, 240, 255, 0.035)
+      );
+      background-size: 100% 3px;
+    }
+
+    /* Glow utility tokens */
+    .glow-cyan {
+      text-shadow: 0 0 8px rgba(0, 240, 255, 0.85), 0 0 16px rgba(0, 240, 255, 0.45);
+    }
+    .glow-alert {
+      text-shadow: 0 0 8px rgba(255, 59, 48, 0.85), 0 0 16px rgba(255, 59, 48, 0.45);
+    }
+    .box-glow-cyan {
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.35), inset 0 0 10px rgba(0, 240, 255, 0.2);
+    }
+    .box-glow-alert {
+      box-shadow: 0 0 15px rgba(255, 59, 48, 0.3), inset 0 0 10px rgba(255, 59, 48, 0.15);
+    }
+
+    /* Chromatic aberration & visor flash overlay */
+    .chromatic-flash {
+      box-shadow: inset 0 0 100px rgba(0, 240, 255, 0.9), inset 0 0 40px rgba(255, 255, 255, 0.95);
+      filter: drop-shadow(0 0 15px #00F0FF);
+    }
+
+    /* Simulated facial wireframe stroke entrance */
+    .wireframe-stroke {
+      stroke-dasharray: 400;
+      stroke-dashoffset: 400;
+      animation: drawWireframe 2.4s ease-out forwards;
+    }
+    @keyframes drawWireframe {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    ::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="h-full w-full font-mono overflow-hidden relative flex items-center justify-center p-0 m-0 bg-black"><svg aria-hidden="true" class="inline-defs-container" style="position:absolute;width:0;height:0;overflow:hidden"></svg>
+<!-- VIEWPORT CONTAINER: Exact mobile portrait 390x844 responsive bounds -->
+<main class="relative w-full h-full max-w-[440px] max-h-[920px] aspect-[9/19.5] sm:rounded-3xl overflow-hidden bg-black flex flex-col justify-between border-0 sm:border border-hud-cyan/20 shadow-2xl shadow-[#00F0FF]/15" data-purpose="hud-viewport">
+<!-- 1. LIVE CAMERA FEED & FALLBACK SYNTHETIC FEEDS (Z-INDEX 1) -->
+<div class="absolute inset-0 z-1 overflow-hidden pointer-events-none bg-transparent" id="camera-feed-container">
+<!-- Live WebRTC Video Element -->
+<video autoplay="" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 opacity-0 pointer-events-none" id="cameraVideo" muted="" playsinline="" style="z-index: 1; transform: scaleX(-1); filter: brightness(1.4) contrast(1.15) saturate(1.1);"></video>
+<!-- Synthetic / Simulated Biometric Feed Canvas (Active on Error or Standby) -->
+<canvas class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 opacity-0 pointer-events-none" height="884" id="simulated-feed-canvas" style="z-index: 1;" width="390"></canvas>
+<!-- Standby Dark Vignette Background Layer -->
+<div class="absolute inset-0 bg-gradient-to-b from-black/90 via-[#010a14]/90 to-black/95 transition-opacity duration-700 opacity-100 pointer-events-none" id="camera-standby-placeholder" style="z-index: 2;"></div>
+<!-- Radial Vignette for seamless cinematic edge blending -->
+<div class="absolute inset-0 camera-vignette pointer-events-none opacity-40" style="z-index: 3; background: radial-gradient(circle at 50% 46%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.3) 85%, rgba(0, 0, 0, 0.8) 98%);"></div>
+<!-- Scanline texture -->
+<div class="absolute inset-0 scanlines pointer-events-none opacity-40" style="z-index: 4;"></div>
+<!-- Animated Biometric Scanning Laser Bar (Phases 2 & 3) -->
+<div class="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#00F0FF] to-transparent shadow-[0_0_15px_#00F0FF] pointer-events-none opacity-0 transition-opacity duration-500" id="laser-bar" style="z-index: 5;"></div>
+</div>
+<!-- DYNAMIC HOLOGRAPHIC CANVAS: Particles, Waveforms, Conic Sweeps & Shockwave Bursts -->
+<canvas class="absolute inset-0 z-10 w-full h-full pointer-events-none" height="884" id="hud-canvas" width="390"></canvas>
+<!-- CINEMATIC SCREEN FLASH LAYER -->
+<div class="absolute inset-0 z-12 pointer-events-none bg-gradient-to-b from-[#00F0FF]/40 via-white/50 to-[#00F0FF]/40 transition-opacity duration-300 mix-blend-screen opacity-0" id="shockwave-flash"></div>
+<!-- CHROMATIC AURA RING FLASH LAYER -->
+<div class="absolute inset-0 z-13 pointer-events-none chromatic-flash transition-opacity duration-500 opacity-0" id="shockwave-aura"></div>
+<!-- 3. SIMULATED FACIAL WIREFRAME & TOPOLOGY MESH -->
+<div class="absolute inset-0 z-15 pointer-events-none flex items-center justify-center transition-opacity duration-700 opacity-0" id="wireframe-container">
+<svg class="w-64 h-80 opacity-70" viewBox="0 0 240 300">
+<ellipse cx="120" cy="150" fill="none" rx="85" ry="110" stroke="#00F0FF" stroke-dasharray="4 4" stroke-width="1.2"></ellipse>
+<path class="wireframe-stroke" d="M 60,110 Q 120,80 180,110" fill="none" stroke="#00F0FF" stroke-width="1"></path>
+<path class="wireframe-stroke" d="M 60,150 Q 120,135 180,150" fill="none" stroke="#00F0FF" stroke-width="1"></path>
+<path class="wireframe-stroke" d="M 75,200 Q 120,215 165,200" fill="none" stroke="#00F0FF" stroke-width="1"></path>
+<path d="M 120,95 L 120,175 L 110,185 L 130,185" fill="none" stroke="#00F0FF" stroke-width="1.2"></path>
+<circle cx="85" cy="130" fill="none" r="14" stroke="#7BD0FF" stroke-width="1.2"></circle>
+<circle cx="85" cy="130" fill="#00F0FF" r="2.5"></circle>
+<circle cx="155" cy="130" fill="none" r="14" stroke="#7BD0FF" stroke-width="1.2"></circle>
+<circle cx="155" cy="130" fill="#00F0FF" r="2.5"></circle>
+<path d="M 95,215 Q 120,230 145,215" fill="none" stroke="#00F0FF" stroke-width="1.2"></path>
+</svg>
+</div>
+<!-- 4. IRON MAN VISOR OCULAR OVERLAYS -->
+<div class="absolute inset-0 z-20 pointer-events-none transition-opacity duration-700 opacity-0" id="hud-ocular-overlays">
+<!-- LEFT OCULAR SYSTEM (JARVIS Concentric Target Ring & Pitch Horizon) -->
+<div class="absolute left-[14%] top-[31%] -translate-x-1/2 -translate-y-1/2 w-44 h-44 sm:w-48 sm:h-48">
+<div class="absolute inset-0 rounded-full border border-hud-cyan/40 border-dashed animate-spin-slow"></div>
+<div class="absolute inset-2 rounded-full border border-hud-cyan/30 animate-spin-reverse"></div>
+<div class="absolute inset-5 rounded-full border border-hud-cyan/50 border-dotted"></div>
+<div class="absolute inset-8 rounded-full border-2 border-hud-cyan/70 box-glow-cyan flex items-center justify-center">
+<span class="text-[9px] tracking-[0.24em] font-orbitron font-extrabold text-hud-cyan glow-cyan animate-pulse">JARVIS</span>
+</div>
+<!-- Crosshairs -->
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-full h-[1px] bg-gradient-to-r from-transparent via-hud-cyan/50 to-transparent"></div>
+<div class="h-full w-[1px] bg-gradient-to-b from-transparent via-hud-cyan/50 to-transparent absolute"></div>
+</div>
+<!-- Horizon Angle Scale -->
+<div class="absolute -right-3 top-1/2 -translate-y-1/2 flex flex-col gap-1 text-[7px] text-hud-cyan/80 font-mono">
+<span>+15°</span>
+<span class="text-white font-bold">--- 0°</span>
+<span>-15°</span>
+</div>
+</div>
+<!-- RIGHT OCULAR MASTER SYSTEM (Multi-Ring Rotating Dial & Micro Wireframe) -->
+<div class="absolute right-[2%] top-[34%] -translate-y-1/2 w-52 h-52 sm:w-56 sm:h-56">
+<div class="absolute inset-0 rounded-full border-2 border-hud-cyan/60 border-t-transparent border-b-transparent animate-spin-slow"></div>
+<div class="absolute inset-3 rounded-full border border-hud-cyan/40 border-l-transparent border-r-transparent animate-spin-reverse"></div>
+<div class="absolute inset-6 rounded-full border border-hud-cyan/30 border-dashed animate-spin-fast"></div>
+<!-- Dial Scale SVG -->
+<svg class="absolute inset-0 w-full h-full animate-spin-slow opacity-80" viewBox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="46" stroke="#00F0FF" stroke-dasharray="2 6" stroke-width="0.7"></circle>
+<circle cx="50" cy="50" fill="none" r="40" stroke="#00F0FF" stroke-dasharray="8 14" stroke-width="1.2"></circle>
+<path d="M 50,4 L 50,14 M 50,86 L 50,96 M 4,50 L 14,50 M 86,50 L 96,50" stroke="#00F0FF" stroke-width="1.5"></path>
+</svg>
+<!-- Micro Holographic Suit Projection -->
+<div class="absolute right-0 top-10 w-14 h-22 border border-hud-cyan/50 bg-[#00F0FF]/10 rounded flex flex-col items-center justify-center p-1 backdrop-blur-sm shadow-[0_0_12px_rgba(0,240,255,0.25)]">
+<svg class="w-8 h-12 text-hud-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 36">
+<path d="M12 2 L15 5 L17 9 L15 12 L17 17 L19 24 L16 34 L12 32 L8 34 L5 24 L7 17 L9 12 L7 5 Z" stroke-width="1"></path>
+<circle class="animate-ping text-white" cx="12" cy="11" fill="#00F0FF" r="2.2"></circle>
+<path d="M9 16 L15 16 M8 22 L16 22 M10 28 L14 28" stroke-width="0.8"></path>
+</svg>
+<span class="text-[6px] tracking-widest text-hud-cyan font-mono mt-0.5">MK-85 SYNC</span>
+</div>
+<!-- Lock Arc Telemetry -->
+<div class="absolute bottom-2 right-4 bg-hud-cyan/15 border-l-2 border-hud-cyan px-2 py-0.5 text-[8px] text-hud-cyan font-mono tracking-wider">
+        LOCK // 100%
+      </div>
+</div>
+<!-- LOWER CHIN COLLAR BRACKET -->
+<div class="absolute bottom-[28%] left-1/2 -translate-x-1/2 w-44 flex flex-col items-center">
+<svg class="w-36 h-8" fill="none" viewBox="0 0 140 24">
+<path d="M 10,4 Q 70,22 130,4" fill="none" opacity="0.85" stroke="#FF3B30" stroke-linecap="round" stroke-width="2.5"></path>
+<circle cx="70" cy="13" fill="#FF3B30" r="2.5"></circle>
+</svg>
+<span class="text-[7px] text-[#FF3B30] tracking-[0.2em] font-mono -mt-1">COLLAR SEALED // NANO-LOCK</span>
+</div>
+<!-- FLOATING PERIPHERAL TELEMETRY -->
+<div class="absolute left-3 top-24 flex flex-col gap-0.5 text-[8px] text-hud-cyan/70 font-mono tracking-tight">
+<div>LAT: 34.0259°N</div>
+<div>LON: 118.7798°W</div>
+<div class="text-hud-cyan font-bold">ARC CORE: 1.21 GW</div>
+<div>FREQ: 432.8 Hz</div>
+<div>NEURAL: NOMINAL</div>
+</div>
+<div class="absolute right-3 top-24 flex flex-col items-end gap-0.5 text-[8px] text-hud-cyan/70 font-mono tracking-tight">
+<div>OCT: 0x88F0A2</div>
+<div>BUFFER: 64 TB</div>
+<div class="text-hud-cyan font-bold">SYNC: LOCKED</div>
+<div>REPULSOR: PRIMED</div>
+<div>TITANIUM: 100%</div>
+</div>
+</div>
+<!-- 5. INTERACTIVE PHASE BANNER & CONTROLS UI -->
+<div class="relative z-30 w-full h-full pointer-events-none flex flex-col justify-between p-4 pb-5">
+<!-- TOP STATUS HEADER & MINIMAL TEST CONTROLS -->
+<header class="w-full flex items-start justify-between pt-1">
+<!-- Suit Identifier -->
+<div class="flex flex-col gap-0.5 pointer-events-auto">
+<div class="flex items-center gap-1.5 text-[10px] tracking-widest text-hud-cyan font-orbitron font-bold">
+<span class="w-2 h-2 rounded-full bg-hud-cyan animate-ping" id="suit-ping-dot"></span>
+<span class="text-white/40">//</span>
+<span class="text-xs text-white" id="suit-sys-code">VISOR ACTIVE // P1</span>
+</div>
+</div>
+<!-- Controls: Audio Toggle, Phase Pills P1, P2, P3, P4 & Dedicated Shockwave Engage -->
+<div class="flex items-center gap-1 pointer-events-auto bg-black/85 px-1.5 py-1 rounded-full border border-hud-cyan/35 backdrop-blur-md shadow-[0_0_12px_rgba(0,240,255,0.25)]">
+<!-- Audio Synth Toggle -->
+<button aria-label="Toggle Audio Synthesizer" class="w-6 h-6 flex items-center justify-center rounded-full bg-hud-cyan/10 hover:bg-hud-cyan/30 text-hud-cyan border border-hud-cyan/40 transition-colors" id="btn-audio-toggle" type="button">
+<span class="material-symbols-outlined text-[14px]" id="icon-sound-on">volume_up</span>
+<span class="material-symbols-outlined text-[14px] hidden text-white/40" id="icon-sound-off">volume_off</span>
+</button>
+<div class="h-3 w-[1px] bg-hud-cyan/30"></div>
+<!-- Manual Phase Jump Pills -->
+<div class="flex items-center gap-1">
+<button class="phase-btn text-[9px] px-1.5 py-0.5 rounded font-orbitron bg-hud-cyan text-black font-bold shadow-[0_0_8px_#00F0FF] transition-all" data-phase="1">P1</button>
+<button class="phase-btn text-[9px] px-1.5 py-0.5 rounded font-orbitron bg-white/10 hover:bg-hud-cyan/20 text-hud-cyan/80 transition-all" data-phase="2">P2</button>
+<button class="phase-btn text-[9px] px-1.5 py-0.5 rounded font-orbitron bg-white/10 hover:bg-hud-cyan/20 text-hud-cyan/80 transition-all" data-phase="3">P3</button>
+<button class="phase-btn text-[9px] px-1.5 py-0.5 rounded font-orbitron bg-white/10 hover:bg-hud-cyan/20 text-hud-cyan/80 transition-all" data-phase="4">P4</button>
+</div>
+<div class="h-3 w-[1px] bg-hud-cyan/30"></div>
+<!-- Dedicated Replay Shockwave Pulse Trigger -->
+<button aria-label="Trigger Shockwave Energy Burst" class="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#00F0FF]/15 hover:bg-[#00F0FF]/30 active:scale-95 border border-[#00F0FF]/60 text-hud-cyan text-[8px] font-orbitron font-extrabold tracking-wider transition-all shadow-[0_0_6px_rgba(0,240,255,0.3)]" id="btn-trigger-shockwave" title="Replay Cinematic Shockwave">
+<span class="material-symbols-outlined text-[11px] animate-spin-slow">cyclone</span>
+<span class="hidden xs:inline">BURST</span>
+</button>
+</div>
+</header>
+<!-- TACTICAL SHOCKWAVE SYSTEM OVERLAY BANNER -->
+<div class="absolute left-1/2 -translate-x-1/2 top-[16%] z-35 w-[88%] text-center pointer-events-none transition-all duration-300 scale-95 opacity-0" id="shockwave-tac-overlay">
+<div class="bg-black/90 border border-hud-cyan/80 px-3 py-1.5 rounded-lg backdrop-blur-md shadow-[0_0_24px_rgba(0,240,255,0.6)]">
+<div class="flex items-center justify-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-[#00F0FF] animate-ping"></span>
+<span class="text-[9px] tracking-[0.25em] font-orbitron font-extrabold text-[#00F0FF] glow-cyan">SYSTEM ENGAGED // MARK-85 ONLINE</span>
+<span class="w-1.5 h-1.5 rounded-full bg-[#00F0FF] animate-ping"></span>
+</div>
+<div class="text-[7px] font-mono text-white/90 tracking-widest mt-0.5">ALL PROTOCOLS ARMED // BIOMETRIC LOCK CONFIRMED</div>
+</div>
+</div>
+<!-- CENTER DYNAMIC PHASE BANNER -->
+<div class="w-full text-center pointer-events-none mt-2 transition-all duration-500" id="phase-banner">
+<div class="text-[9px] uppercase tracking-[0.25em] text-hud-cyan/70 font-mono" id="banner-tag">INITIALIZING OCULAR BIOMETRIC PROTOCOL // MK-LXXXV</div>
+<h1 class="text-sm sm:text-base font-orbitron font-extrabold text-hud-cyan glow-cyan tracking-wider mt-0.5" id="banner-title">STANDBY FOR CAMERA AUTHORIZATION</h1>
+<div class="w-28 h-[1px] bg-gradient-to-r from-transparent via-hud-cyan to-transparent mx-auto mt-1"></div>
+<!-- Non-blocking Fallback Simulation Notification Badge -->
+<div class="inline-flex items-center gap-1.5 mt-1.5 px-2 py-0.5 rounded border border-hud-cyan/40 bg-hud-cyan/10 backdrop-blur-sm transition-all duration-300 opacity-0" id="fallback-status-badge">
+<span class="w-1.5 h-1.5 rounded-full bg-hud-cyan animate-pulse"></span>
+<span class="text-[8px] font-mono text-hud-cyan tracking-widest uppercase">CAMERA ACCESS RESTRICTED // SIMULATION FEED ACTIVE</span>
+</div>
+</div>
+<!-- P1 INITIALIZATION ACQUISITION RETICLE -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-500 opacity-100" id="p1-acquisition-ring"><div class="relative flex items-center justify-center pointer-events-none" style="height: 500px; width: 340px;"><div class="absolute inset-0 border border-hud-cyan/30 border-dashed animate-spin-slow" style="border-radius: 50% / 50%;"></div><div class="absolute inset-6 border border-hud-cyan/20 animate-spin-reverse" style="border-radius: 50% / 50%;"></div><div class="absolute inset-12 border border-hud-cyan/15 animate-spin-slow" style="border-radius: 50% / 50%;"></div><div class="absolute w-44 h-52 border border-hud-cyan/40" style="border-radius: 50% / 50%;"></div><div class="w-full h-px bg-hud-cyan/30"></div><div class="h-full w-px bg-hud-cyan/30 absolute"></div><div class="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-hud-cyan"></div><div class="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-hud-cyan"></div><div class="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-hud-cyan"></div><div class="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-hud-cyan"></div><div class="absolute -bottom-8 text-[8px] tracking-widest text-hud-cyan font-mono animate-pulse whitespace-nowrap" id="acquisition-text">STANDBY // READY FOR SCAN</div></div></div>
+<!-- GLASS OVERLAY PERMISSION / UNSUPPORTED MODAL (Graceful Dismissible HUD Alert) -->
+<div class="absolute inset-x-4 top-1/2 -translate-y-1/2 z-40 bg-black/90 border border-hud-alert/60 p-5 rounded-2xl backdrop-blur-xl shadow-[0_0_30px_rgba(255,59,48,0.25)] flex flex-col items-center text-center gap-3 transition-all duration-300 opacity-0 pointer-events-none scale-95" id="camera-error-modal">
+<div class="w-12 h-12 rounded-full bg-hud-alert/20 border border-hud-alert flex items-center justify-center text-hud-alert shadow-[0_0_15px_#FF3B30]">
+<span class="material-symbols-outlined text-2xl" id="modal-icon">videocam_off</span>
+</div>
+<div>
+<h3 class="text-xs font-orbitron font-bold text-hud-alert tracking-wider" id="modal-title">CAMERA ACCESS RESTRICTED</h3>
+<p class="text-[10px] text-white/70 font-mono mt-1 leading-relaxed" id="modal-desc">Biometric optical sensor is restricted or unavailable. Simulated biometric feed activated so the HUD remains fully operational.</p>
+</div>
+<div class="flex items-center gap-2 mt-1 w-full">
+<button class="flex-1 py-2 px-3 rounded-lg border border-hud-cyan/80 bg-hud-cyan/20 hover:bg-hud-cyan/30 text-white font-orbitron text-[9px] font-bold tracking-wider transition-all pointer-events-auto" id="btn-modal-retry" type="button">
+      RETRY ACCESS
+    </button>
+<button class="py-2 px-3 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 text-white/70 font-orbitron text-[9px] tracking-wider transition-all pointer-events-auto" id="btn-modal-dismiss" type="button">
+      USE SIMULATION
+    </button>
+</div>
+</div>
+<!-- BOTTOM SECTION: BIOMETRIC TELEMETRY & EXACTLY TWO SIDE-BY-SIDE CONTROLS -->
+<footer class="w-full flex flex-col items-center gap-2.5">
+<div class="w-full flex items-center justify-between px-1 py-1 transition-all duration-700 pointer-events-none scale-100 opacity-0" id="p4-bottom-telemetry">
+<div class="flex items-center gap-2 bg-black/60 border border-hud-cyan/40 rounded-xl px-2.5 py-1.5 backdrop-blur-md shadow-[0_0_12px_rgba(0,240,255,0.2)]">
+<div class="relative w-12 h-12 flex items-center justify-center">
+<div class="absolute inset-0 rounded-full border border-hud-cyan/30 border-dashed animate-spin-slow"></div>
+<div class="absolute inset-1 rounded-full border-2 border-hud-cyan/70 border-t-transparent animate-spin-reverse"></div>
+<svg class="w-9 h-9 text-hud-cyan animate-pulse" viewBox="0 0 36 36"><path d="M18 4 A14 14 0 1 1 5.2 25" fill="none" stroke="#00F0FF" stroke-linecap="round" stroke-width="2.5"></path><circle cx="18" cy="18" fill="#00F0FF" r="2.5"></circle></svg>
+<span class="absolute text-[8px] font-orbitron font-extrabold text-hud-cyan glow-cyan">99%</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[7px] font-mono tracking-widest text-hud-cyan/70 uppercase">ARC CORE</span>
+<span class="text-[9px] font-orbitron font-bold text-white tracking-wider glow-cyan" id="metric-symmetry">STANDBY</span>
+<span class="text-[6px] font-mono text-hud-cyan/80 tracking-tight" id="metric-dilation">NOMINAL</span>
+</div>
+</div>
+<div class="flex flex-col items-center justify-center px-1">
+<div class="flex items-center gap-1 mb-0.5">
+<span class="w-1.5 h-1.5 rounded-full bg-hud-cyan animate-ping"></span>
+<span class="text-[8px] font-orbitron font-bold text-hud-cyan glow-cyan tracking-widest">COMBAT HUD</span>
+</div>
+<div class="w-14 h-[2px] bg-gradient-to-r from-transparent via-[#00F0FF] to-transparent shadow-[0_0_8px_#00F0FF]"></div>
+<span class="text-[6px] font-mono text-hud-cyan/70 tracking-widest mt-0.5" id="metric-vectors">STANDBY</span>
+</div>
+<div class="flex items-center gap-2 bg-black/60 border border-hud-cyan/40 rounded-xl px-2.5 py-1.5 backdrop-blur-md shadow-[0_0_12px_rgba(0,240,255,0.2)]">
+<div class="flex flex-col items-end">
+<span class="text-[7px] font-mono tracking-widest text-hud-cyan/70 uppercase">NEURAL LINK</span>
+<span class="text-[9px] font-orbitron font-bold text-white tracking-wider glow-cyan">SYNCED</span>
+<span class="text-[6px] font-mono text-hud-cyan/80 tracking-tight">LATENCY: 0.1ms</span>
+</div>
+<div class="relative w-12 h-12 flex items-center justify-center">
+<div class="absolute inset-0 rounded-full border border-hud-cyan/40 animate-spin-fast"></div>
+<div class="absolute inset-1 rounded-full border-2 border-hud-cyan/80 border-b-transparent border-l-transparent animate-spin-reverse"></div>
+<svg class="w-9 h-9 opacity-85" viewBox="0 0 36 36"><circle cx="18" cy="18" fill="none" r="13" stroke="#00F0FF" stroke-dasharray="3 5" stroke-width="1.5"></circle><path d="M18 8 L18 12 M18 24 L18 28 M8 18 L12 18 M24 18 L28 18" stroke="#00F0FF" stroke-width="1.5"></path><circle class="animate-ping" cx="18" cy="18" fill="#00F0FF" r="2"></circle></svg>
+<span class="absolute text-[8px] font-orbitron font-extrabold text-hud-cyan glow-cyan">100</span>
+</div>
+</div>
+</div>
+<!-- EXACTLY TWO PROMINENT FUTURISTIC CONTROLS SIDE-BY-SIDE -->
+<div class="w-full grid grid-cols-2 gap-3 pointer-events-auto">
+<!-- LEFT ACTION BUTTON: ENABLE CAMERA / DISABLE CAMERA / INITIALIZING... -->
+<button class="group relative flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border transition-all duration-300 pointer-events-auto border-hud-cyan/80 bg-hud-cyan/15 hover:bg-hud-cyan/25 active:scale-95 box-glow-cyan" id="btn-camera-toggle" type="button">
+<!-- Status icon / Pulse dot -->
+<div class="relative w-4 h-4 flex items-center justify-center">
+<span class="material-symbols-outlined text-[17px] group-hover:scale-110 transition-transform text-hud-cyan" id="camera-btn-icon">videocam</span>
+<span class="w-2.5 h-2.5 rounded-full bg-hud-cyan shadow-[0_0_8px_#00F0FF] animate-pulse absolute hidden" id="camera-active-dot"></span>
+</div>
+<!-- Label -->
+<span class="text-[10px] tracking-[0.18em] font-orbitron font-bold whitespace-nowrap text-hud-cyan glow-cyan" id="camera-btn-label">ENABLE CAMERA</span>
+</button>
+<!-- RIGHT ACTION BUTTON: ABORT SEQUENCE -->
+<button class="group relative flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-hud-alert/80 bg-[#FF3B30]/15 hover:bg-[#FF3B30]/25 active:scale-95 transition-all duration-300 box-glow-alert pointer-events-auto" id="btn-abort" type="button">
+<!-- Power / Alert icon -->
+<div class="relative w-4 h-4 flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] text-hud-alert group-hover:rotate-90 transition-transform">power_settings_new</span>
+<div class="absolute w-1.5 h-1.5 rounded-full bg-hud-alert animate-ping"></div>
+</div>
+<!-- Label -->
+<span class="text-[10px] tracking-[0.18em] font-orbitron font-bold text-hud-alert glow-alert whitespace-nowrap group-hover:text-white transition-colors">
+  ABORT
+</span>
+</button>
+</div>
+</footer>
+</div>
+</main>
+<!-- CINEMATIC PROCEDURAL AUDIO SYNTHESIZER & JARVIS VOICE ENGINE -->
+<script>
+  class JarvisAudioEngine {
+    constructor() {
+      this.ctx = null;
+      this.muted = false;
+      this.speechSynth = window.speechSynthesis || null;
+      this.jarvisVoice = null;
+      this.activeOscillators = [];
+      this.initVoice();
+    }
+
+    initContext() {
+      if (!this.ctx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          this.ctx = new AudioContextClass();
+        }
+      }
+      if (this.ctx && this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+    }
+
+    initVoice() {
+      if (!this.speechSynth) return;
+      const selectVoice = () => {
+        const voices = this.speechSynth.getVoices();
+        // Authentic British JARVIS persona: en-GB male
+        this.jarvisVoice = voices.find(v => v.lang.includes('en-GB') && v.name.toLowerCase().includes('male'))
+          || voices.find(v => v.lang.includes('en-GB'))
+          || voices.find(v => v.lang.includes('en-US'))
+          || voices[0];
+      };
+      selectVoice();
+      if (this.speechSynth.onvoiceschanged !== undefined) {
+        this.speechSynth.onvoiceschanged = selectVoice;
+      }
+    }
+
+    trackOsc(osc) {
+      this.activeOscillators.push(osc);
+      osc.onended = () => {
+        const index = this.activeOscillators.indexOf(osc);
+        if (index > -1) this.activeOscillators.splice(index, 1);
+      };
+    }
+
+    stopAllAudio() {
+      this.activeOscillators.forEach(osc => {
+        try {
+          osc.stop();
+          osc.disconnect();
+        } catch (e) {}
+      });
+      this.activeOscillators = [];
+      if (this.speechSynth) {
+        try {
+          this.speechSynth.cancel();
+        } catch (e) {}
+      }
+    }
+
+    playPowerUp() {
+      if (this.muted) return;
+      this.initContext();
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(140, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.6);
+      gain.gain.setValueAtTime(0.01, this.ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.12, this.ctx.currentTime + 0.3);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.7);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      this.trackOsc(osc);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.7);
+    }
+
+    playScanSweep() {
+      if (this.muted) return;
+      this.initContext();
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(450, this.ctx.currentTime);
+      osc.frequency.linearRampToValueAtTime(950, this.ctx.currentTime + 0.15);
+      osc.frequency.linearRampToValueAtTime(320, this.ctx.currentTime + 0.35);
+      gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.4);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      this.trackOsc(osc);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.4);
+    }
+
+    playRadarBlip() {
+      if (this.muted) return;
+      this.initContext();
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(2400, this.ctx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.06, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.2);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      this.trackOsc(osc);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.2);
+    }
+
+    playConfirmationChime() {
+      if (this.muted) return;
+      this.initContext();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const freqs = [523.25, 659.25, 783.99, 1046.50];
+      freqs.forEach((f, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, now + idx * 0.09);
+        gain.gain.setValueAtTime(0.08, now + idx * 0.09);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.09 + 0.85);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        this.trackOsc(osc);
+        osc.start(now + idx * 0.09);
+        osc.stop(now + idx * 0.09 + 0.85);
+      });
+    }
+
+    // High-impact cinematic supersonic shockwave resonance & sub-bass energy boom
+    playShockwaveBoom() {
+      if (this.muted) return;
+      this.initContext();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+
+      // 1. Sub-bass energy thump
+      const subOsc = this.ctx.createOscillator();
+      const subGain = this.ctx.createGain();
+      subOsc.type = 'sine';
+      subOsc.frequency.setValueAtTime(150, now);
+      subOsc.frequency.exponentialRampToValueAtTime(32, now + 0.8);
+      subGain.gain.setValueAtTime(0.28, now);
+      subGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+      subOsc.connect(subGain);
+      subGain.connect(this.ctx.destination);
+      this.trackOsc(subOsc);
+      subOsc.start(now);
+      subOsc.stop(now + 1.25);
+
+      // 2. High-energy resonant chime
+      const highOsc = this.ctx.createOscillator();
+      const highGain = this.ctx.createGain();
+      highOsc.type = 'sawtooth';
+      highOsc.frequency.setValueAtTime(1600, now);
+      highOsc.frequency.exponentialRampToValueAtTime(440, now + 0.6);
+      highGain.gain.setValueAtTime(0.12, now);
+      highGain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+      highOsc.connect(highGain);
+      highGain.connect(this.ctx.destination);
+      this.trackOsc(highOsc);
+      highOsc.start(now);
+      highOsc.stop(now + 0.7);
+    }
+
+    playAbortTone() {
+      if (this.muted) return;
+      this.initContext();
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(380, this.ctx.currentTime);
+      osc.frequency.linearRampToValueAtTime(140, this.ctx.currentTime + 0.3);
+      gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      this.trackOsc(osc);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.35);
+    }
+
+    speak(text) {
+      if (this.muted || !this.speechSynth) return;
+      try {
+        this.speechSynth.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        if (this.jarvisVoice) {
+          utterance.voice = this.jarvisVoice;
+        }
+        utterance.rate = 1.02;
+        utterance.pitch = 0.94;
+        this.speechSynth.speak(utterance);
+      } catch (e) {
+        console.warn("Speech synthesis unavailable:", e);
+      }
+    }
+  }
+
+  const soundEngine = new JarvisAudioEngine();
+</script>
+<!-- SYNTHETIC BIOMETRIC SIMULATION FEED ENGINE -->
+<script>
+  const simCanvas = document.getElementById('simulated-feed-canvas');
+  const simCtx = simCanvas.getContext('2d');
+  let isSimulating = false;
+  let simAnimId = null;
+
+  function resizeSimCanvas() {
+    const rect = simCanvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    simCanvas.width = rect.width * dpr;
+    simCanvas.height = rect.height * dpr;
+    simCtx.resetTransform();
+    simCtx.scale(dpr, dpr);
+  }
+  window.addEventListener('resize', resizeSimCanvas);
+
+  function startSimulatedFeed() {
+    isSimulating = true;
+    resizeSimCanvas();
+    simCanvas.classList.remove('opacity-0');
+    simCanvas.classList.add('opacity-85');
+    document.getElementById('fallback-status-badge').classList.remove('opacity-0');
+    document.getElementById('camera-standby-placeholder').classList.add('opacity-0');
+
+    function drawSim(now) {
+      if (!isSimulating) return;
+      const w = simCanvas.getBoundingClientRect().width;
+      const h = simCanvas.getBoundingClientRect().height;
+      simCtx.clearRect(0, 0, w, h);
+
+      // Low-light infrared background gradient
+      const bgGrad = simCtx.createRadialGradient(w/2, h*0.44, 40, w/2, h*0.44, w*0.8);
+      bgGrad.addColorStop(0, '#041829');
+      bgGrad.addColorStop(0.6, '#020b14');
+      bgGrad.addColorStop(1, '#000306');
+      simCtx.fillStyle = bgGrad;
+      simCtx.fillRect(0, 0, w, h);
+
+      // Cybernetic wireframe biometric subject silhouette
+      const cx = w * 0.5;
+      const cy = h * 0.44;
+
+      // Shoulders & Torso outline
+      simCtx.strokeStyle = 'rgba(0, 240, 255, 0.25)';
+      simCtx.lineWidth = 1.5;
+      simCtx.beginPath();
+      simCtx.moveTo(cx - 110, cy + 220);
+      simCtx.bezierCurveTo(cx - 80, cy + 130, cx - 50, cy + 90, cx - 35, cy + 70);
+      simCtx.lineTo(cx + 35, cy + 70);
+      simCtx.bezierCurveTo(cx + 50, cy + 90, cx + 80, cy + 130, cx + 110, cy + 220);
+      simCtx.stroke();
+
+      // Stylized head / face oval silhouette
+      simCtx.save();
+      simCtx.beginPath();
+      simCtx.ellipse(cx, cy - 20, 52, 72, 0, 0, Math.PI * 2);
+      simCtx.strokeStyle = 'rgba(0, 240, 255, 0.5)';
+      simCtx.lineWidth = 1.2;
+      simCtx.stroke();
+
+      // Horizontal contour scan lines traversing the face
+      const t = now * 0.0015;
+      for (let y = -60; y <= 55; y += 14) {
+        const chord = Math.sqrt(Math.max(0, 1 - Math.pow(y / 68, 2))) * 48;
+        simCtx.beginPath();
+        const yOff = Math.sin(t + y * 0.08) * 2.5;
+        simCtx.moveTo(cx - chord, cy - 20 + y + yOff);
+        simCtx.quadraticCurveTo(cx, cy - 12 + y + yOff * 2, cx + chord, cy - 20 + y + yOff);
+        simCtx.strokeStyle = 'rgba(0, 240, 255, 0.35)';
+        simCtx.stroke();
+      }
+
+      // Feature nodes / facial landmarks
+      const nodes = [
+        [-20, -32], [20, -32], // Brows
+        [-18, -20], [18, -20], // Eyes
+        [0, -4], [0, 8],       // Nose bridge & tip
+        [-15, 26], [0, 28], [15, 26], // Lips
+        [0, 44]               // Chin
+      ];
+      nodes.forEach(([nx, ny]) => {
+        simCtx.beginPath();
+        simCtx.arc(cx + nx, cy - 20 + ny, 2, 0, Math.PI * 2);
+        simCtx.fillStyle = '#00F0FF';
+        simCtx.shadowColor = '#00F0FF';
+        simCtx.shadowBlur = 6;
+        simCtx.fill();
+      });
+      simCtx.restore();
+
+      // Digital matrix noise points
+      simCtx.fillStyle = 'rgba(0, 240, 255, 0.2)';
+      for (let i = 0; i < 16; i++) {
+        const px = (Math.sin(i * 99 + now * 0.002) * 0.5 + 0.5) * w;
+        const py = (Math.cos(i * 47 + now * 0.002) * 0.5 + 0.5) * h;
+        simCtx.fillRect(px, py, 2, 2);
+      }
+
+      simAnimId = requestAnimationFrame(drawSim);
+    }
+    simAnimId = requestAnimationFrame(drawSim);
+  }
+
+  function stopSimulatedFeed() {
+    isSimulating = false;
+    if (simAnimId) cancelAnimationFrame(simAnimId);
+    simCanvas.classList.remove('opacity-85');
+    simCanvas.classList.add('opacity-0');
+    document.getElementById('fallback-status-badge').classList.add('opacity-0');
+  }
+</script>
+<!-- ROBUST WEBRTC CAMERA & LIFECYCLE MANAGEMENT -->
+<script>
+  let cameraStream = null;
+  let isInitializingCamera = false;
+  let phaseTimeouts = [];
+
+  const videoElem = document.getElementById('cameraVideo');
+  const cameraStandbyPlaceholder = document.getElementById('camera-standby-placeholder');
+  const btnCameraToggle = document.getElementById('btn-camera-toggle');
+  const cameraBtnLabel = document.getElementById('camera-btn-label');
+  const cameraBtnIcon = document.getElementById('camera-btn-icon');
+  const cameraActiveDot = document.getElementById('camera-active-dot');
+  
+  // Modal error elements
+  const cameraErrorModal = document.getElementById('camera-error-modal');
+  const modalTitle = document.getElementById('modal-title');
+  const modalDesc = document.getElementById('modal-desc');
+  const btnModalRetry = document.getElementById('btn-modal-retry');
+  const btnModalDismiss = document.getElementById('btn-modal-dismiss');
+  const acquisitionText = document.getElementById('acquisition-text');
+
+  function clearAllPhaseTimers() {
+    phaseTimeouts.forEach(t => clearTimeout(t));
+    phaseTimeouts = [];
+  }
+
+  function setCameraButtonState(state) {
+    btnCameraToggle.disabled = false;
+    btnCameraToggle.className = 'group relative flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border transition-all duration-300 pointer-events-auto';
+    cameraBtnLabel.className = 'text-[10px] tracking-[0.18em] font-orbitron font-bold whitespace-nowrap';
+    cameraBtnIcon.className = 'material-symbols-outlined text-[17px] group-hover:scale-110 transition-transform';
+    cameraActiveDot.classList.add('hidden');
+    cameraBtnIcon.classList.remove('hidden');
+
+    switch (state) {
+      case 'BEFORE_PERMISSION':
+        btnCameraToggle.classList.add('border-hud-cyan/80', 'bg-hud-cyan/15', 'hover:bg-hud-cyan/25', 'active:scale-95', 'box-glow-cyan');
+        cameraBtnLabel.classList.add('text-hud-cyan', 'glow-cyan');
+        cameraBtnLabel.textContent = 'ENABLE CAMERA';
+        cameraBtnIcon.classList.add('text-hud-cyan');
+        cameraBtnIcon.textContent = 'videocam';
+        break;
+
+      case 'INITIALIZING':
+        btnCameraToggle.disabled = true;
+        btnCameraToggle.classList.add('border-hud-cyan/50', 'bg-hud-cyan/10', 'cursor-wait', 'animate-pulse');
+        cameraBtnLabel.classList.add('text-hud-cyan');
+        cameraBtnLabel.textContent = 'INITIALIZING...';
+        cameraBtnIcon.classList.add('text-hud-cyan', 'animate-spin');
+        cameraBtnIcon.textContent = 'progress_activity';
+        break;
+
+      case 'CAMERA_ACTIVE':
+        btnCameraToggle.classList.add('border-hud-cyan', 'bg-hud-cyan/20', 'hover:bg-hud-cyan/30', 'box-glow-cyan');
+        cameraBtnLabel.classList.add('text-hud-cyan', 'glow-cyan');
+        cameraBtnLabel.textContent = 'DISABLE CAMERA';
+        cameraBtnIcon.classList.add('hidden');
+        cameraActiveDot.classList.remove('hidden');
+        break;
+
+      case 'SIMULATION_ACTIVE':
+        btnCameraToggle.classList.add('border-hud-cyan/80', 'bg-hud-cyan/15', 'hover:bg-hud-cyan/25', 'box-glow-cyan');
+        cameraBtnLabel.classList.add('text-hud-cyan', 'glow-cyan');
+        cameraBtnLabel.textContent = 'SIMULATION ON';
+        cameraBtnIcon.classList.add('text-hud-cyan');
+        cameraBtnIcon.textContent = 'sensors';
+        break;
+
+      case 'ACCESS_DENIED':
+        btnCameraToggle.classList.add('border-hud-alert/80', 'bg-hud-alert/15', 'hover:bg-hud-alert/25', 'box-glow-alert', 'active:scale-95');
+        cameraBtnLabel.classList.add('text-hud-alert', 'glow-alert');
+        cameraBtnLabel.textContent = 'CAMERA ACCESS DENIED';
+        cameraBtnIcon.classList.add('text-hud-alert');
+        cameraBtnIcon.textContent = 'videocam_off';
+        break;
+
+      case 'UNSUPPORTED':
+        btnCameraToggle.classList.add('border-hud-alert/80', 'bg-hud-alert/15');
+        cameraBtnLabel.classList.add('text-hud-alert');
+        cameraBtnLabel.textContent = 'UNSUPPORTED BROWSER';
+        cameraBtnIcon.classList.add('text-hud-alert');
+        cameraBtnIcon.textContent = 'warning';
+        break;
+    }
+  }
+
+  function showModal(title, message) {
+    modalTitle.textContent = title;
+    modalDesc.textContent = message;
+    cameraErrorModal.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+    cameraErrorModal.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+  }
+
+  function hideModal() {
+    cameraErrorModal.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+    cameraErrorModal.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+  }
+
+  btnModalDismiss.addEventListener('click', () => {
+    hideModal();
+    startSimulatedFeed();
+    setCameraButtonState('SIMULATION_ACTIVE');
+  });
+
+  btnModalRetry.addEventListener('click', () => {
+    hideModal();
+    startCamera();
+  });
+
+  async function startCamera() {
+    if (isInitializingCamera) return;
+    hideModal();
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setCameraButtonState('SIMULATION_ACTIVE');
+      startSimulatedFeed();
+      showModal('CAMERA ACCESS RESTRICTED', 'WebRTC live camera hardware is unavailable or sandboxed. Simulated biometric feed activated.');
+      startFourPhaseWorkflow();
+      return;
+    }
+
+    try {
+      isInitializingCamera = true;
+      setCameraButtonState('INITIALIZING');
+
+      const constraints = {
+        video: {
+          facingMode: 'user',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      stopSimulatedFeed();
+      cameraStream = stream;
+      videoElem.srcObject = stream;
+
+      videoElem.onloadedmetadata = () => {
+        videoElem.play().catch(e => console.log(e));
+      };
+
+      videoElem.classList.remove('opacity-0');
+      videoElem.classList.add('opacity-90');
+      cameraStandbyPlaceholder.classList.add('opacity-0');
+
+      setCameraButtonState('CAMERA_ACTIVE');
+      isInitializingCamera = false;
+
+      startFourPhaseWorkflow();
+
+    } catch (err) {
+      isInitializingCamera = false;
+      console.warn("Camera initialization notice:", err);
+
+      // Activate graceful synthetic fallback so user never has a broken experience
+      startSimulatedFeed();
+      setCameraButtonState('SIMULATION_ACTIVE');
+
+      let explanation = 'Biometric optical sensor is restricted or unavailable in this environment. Simulated biometric feed activated so the HUD remains 100% operational.';
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        explanation = 'Camera permission was not granted or blocked by browser policy. Simulated biometric feed activated to maintain HUD functionality.';
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        explanation = 'No active optical hardware or camera sensor found on this unit. Simulation feed running.';
+      }
+      showModal('CAMERA ACCESS RESTRICTED', explanation);
+      stopCameraHardware();
+      startFourPhaseWorkflow();
+    }
+  }
+
+  function stopCameraHardware() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => {
+        try {
+          track.stop();
+        } catch (e) {}
+      });
+      cameraStream = null;
+    }
+    videoElem.srcObject = null;
+    videoElem.classList.remove('opacity-90');
+    videoElem.classList.add('opacity-0');
+  }
+
+  btnCameraToggle.addEventListener('click', () => {
+    soundEngine.initContext();
+    if (cameraStream && cameraStream.active) {
+      clearAllPhaseTimers();
+      stopCameraHardware();
+      stopSimulatedFeed();
+      cameraStandbyPlaceholder.classList.remove('opacity-0');
+      setCameraButtonState('BEFORE_PERMISSION');
+      setPhase(1, true, false);
+    } else if (isSimulating) {
+      stopSimulatedFeed();
+      cameraStandbyPlaceholder.classList.remove('opacity-0');
+      setCameraButtonState('BEFORE_PERMISSION');
+      setPhase(1, true, false);
+    } else {
+      startCamera();
+    }
+  });
+</script>
+<!-- 4-PHASE HUD CONTROLLER & DYNAMIC CINEMATIC SHOCKWAVE SYSTEM -->
+<script>
+  const canvas = document.getElementById('hud-canvas');
+  const ctx = canvas.getContext('2d');
+
+  // HUD elements
+  const bannerTag = document.getElementById('banner-tag');
+  const bannerTitle = document.getElementById('banner-title');
+  const laserBar = document.getElementById('laser-bar');
+  const wireframeContainer = document.getElementById('wireframe-container');
+  const hudOcularOverlays = document.getElementById('hud-ocular-overlays');
+  const p1AcquisitionRing = document.getElementById('p1-acquisition-ring');
+  const metricVectors = document.getElementById('metric-vectors');
+  const metricSymmetry = document.getElementById('metric-symmetry');
+  const metricDilation = document.getElementById('metric-dilation');
+  const suitSysCode = document.getElementById('suit-sys-code');
+  const p4BottomTelemetry = document.getElementById('p4-bottom-telemetry');
+  const btnAbort = document.getElementById('btn-abort');
+  const btnAudioToggle = document.getElementById('btn-audio-toggle');
+  const iconSoundOn = document.getElementById('icon-sound-on');
+  const iconSoundOff = document.getElementById('icon-sound-off');
+  const phaseButtons = document.querySelectorAll('.phase-btn');
+  const btnTriggerShockwave = document.getElementById('btn-trigger-shockwave');
+  const shockwaveFlash = document.getElementById('shockwave-flash');
+  const shockwaveAura = document.getElementById('shockwave-aura');
+  const shockwaveTacOverlay = document.getElementById('shockwave-tac-overlay');
+
+  let currentPhase = 1;
+  let animationFrameId = null;
+  let abortFlashCount = 0;
+
+  // Active cinematic shockwave rings & energy spark particles
+  let shockwaveRings = [];
+  let shockwaveSparks = [];
+
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.resetTransform();
+    ctx.scale(dpr, dpr);
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  // CINEMATIC HOLOGRAPHIC SHOCKWAVE TRIGGER FUNCTION
+  function triggerCinematicShockwave() {
+    soundEngine.initContext();
+    soundEngine.playShockwaveBoom();
+
+    const rect = canvas.getBoundingClientRect();
+    const centerX = rect.width * 0.5;
+    const centerY = rect.height * 0.42;
+
+    // 1. Screen flash & chromatic aura pulse
+    shockwaveFlash.classList.remove('opacity-0');
+    shockwaveFlash.classList.add('opacity-90');
+    shockwaveAura.classList.remove('opacity-0');
+    shockwaveAura.classList.add('opacity-100');
+
+    setTimeout(() => {
+      shockwaveFlash.classList.remove('opacity-90');
+      shockwaveFlash.classList.add('opacity-0');
+    }, 280);
+
+    setTimeout(() => {
+      shockwaveAura.classList.remove('opacity-100');
+      shockwaveAura.classList.add('opacity-0');
+    }, 650);
+
+    // 2. High-Tech Tactical Overlay Lock Banner
+    shockwaveTacOverlay.classList.remove('opacity-0', 'scale-90');
+    shockwaveTacOverlay.classList.add('opacity-100', 'scale-100');
+    setTimeout(() => {
+      shockwaveTacOverlay.classList.remove('opacity-100', 'scale-100');
+      shockwaveTacOverlay.classList.add('opacity-0', 'scale-95');
+    }, 2600);
+
+    // 3. Spawn Concentric Multi-layered Expanding Holographic Shockwave Rings
+    shockwaveRings = [];
+    const ringDelays = [0, 80, 160, 240, 320];
+    ringDelays.forEach((delay, idx) => {
+      setTimeout(() => {
+        shockwaveRings.push({
+          x: centerX,
+          y: centerY,
+          radius: 12 + idx * 8,
+          maxRadius: Math.max(rect.width, rect.height) * 1.05,
+          speed: 8.5 + idx * 1.8,
+          lineWidth: 5.5 - idx * 0.8,
+          opacity: 1.0,
+          hueOffset: idx % 2 === 0 ? '#00F0FF' : '#7BD0FF',
+          hasGlow: true
+        });
+      }, delay);
+    });
+
+    // 4. Spawn 360-degree outward energy sparks & holographic fragments
+    shockwaveSparks = [];
+    const sparkCount = 65;
+    for (let i = 0; i < sparkCount; i++) {
+      const angle = (Math.PI * 2 / sparkCount) * i + (Math.random() * 0.15);
+      const velocity = 3.5 + Math.random() * 8.5;
+      shockwaveSparks.push({
+        x: centerX,
+        y: centerY,
+        vx: Math.cos(angle) * velocity,
+        vy: Math.sin(angle) * velocity,
+        size: 1.5 + Math.random() * 2.8,
+        length: 4 + Math.random() * 12,
+        opacity: 1.0,
+        decay: 0.012 + Math.random() * 0.02,
+        color: Math.random() > 0.3 ? '#00F0FF' : '#FFFFFF'
+      });
+    }
+  }
+
+  // Dedicated Shockwave Replay Button
+  btnTriggerShockwave.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (currentPhase !== 4) {
+      setPhase(4, true, false);
+    } else {
+      triggerCinematicShockwave();
+    }
+  });
+
+  function startFourPhaseWorkflow() {
+    clearAllPhaseTimers();
+    setPhase(1, true, true);
+
+    // Progression: P1 (0s) -> P2 (2.6s) -> P3 (6.2s) -> P4 (10.5s)
+    phaseTimeouts.push(setTimeout(() => setPhase(2, false, true), 2600));
+    phaseTimeouts.push(setTimeout(() => setPhase(3, false, true), 6200));
+    phaseTimeouts.push(setTimeout(() => setPhase(4, false, true), 10500));
+  }
+
+  function setPhase(phaseNum, userTriggered = false, speakAudio = true) {
+    currentPhase = phaseNum;
+
+    // Update pill buttons
+    phaseButtons.forEach(btn => {
+      const p = parseInt(btn.dataset.phase);
+      if (p === currentPhase) {
+        btn.className = 'phase-btn text-[9px] px-1.5 py-0.5 rounded font-orbitron bg-hud-cyan text-black font-bold shadow-[0_0_8px_#00F0FF] transition-all';
+      } else {
+        btn.className = 'phase-btn text-[9px] px-1.5 py-0.5 rounded font-orbitron bg-white/10 hover:bg-hud-cyan/20 text-hud-cyan/80 transition-all';
+      }
+    });
+
+    switch (currentPhase) {
+      case 1:
+        bannerTag.textContent = "INITIALIZING OCULAR BIOMETRIC PROTOCOL // MK-LXXXV";
+        bannerTitle.textContent = (cameraStream || isSimulating) ? "ACQUIRING SUBJECT... // SCAN INITIATED" : "STANDBY FOR CAMERA AUTHORIZATION";
+        bannerTitle.className = "text-sm sm:text-base font-orbitron font-extrabold text-hud-cyan glow-cyan tracking-wider mt-0.5";
+        suitSysCode.textContent = "VISOR ACTIVE // P1";
+        
+        laserBar.classList.add('opacity-0');
+        laserBar.classList.remove('animate-laser-sweep');
+        wireframeContainer.classList.add('opacity-0');
+        hudOcularOverlays.classList.add('opacity-0');
+        p1AcquisitionRing.classList.remove('opacity-0');
+        p4BottomTelemetry.classList.add('opacity-0');
+        p4BottomTelemetry.classList.remove('opacity-100');
+
+        metricVectors.textContent = "STANDBY";
+        metricSymmetry.textContent = "STANDBY";
+        metricDilation.textContent = "NOMINAL";
+
+        soundEngine.playPowerUp();
+        if (speakAudio) {
+          soundEngine.speak("Initializing optical telemetry. Commencing subject acquisition.");
+        }
+        break;
+
+      case 2:
+        bannerTag.textContent = "LANDMARK VECTORS: 68 NODES LOCKED";
+        bannerTitle.textContent = "MAPPING CRANIAL TOPOLOGY & ORBITAL NODES";
+        bannerTitle.className = "text-sm sm:text-base font-orbitron font-extrabold text-hud-cyan glow-cyan tracking-wider mt-0.5";
+        suitSysCode.textContent = "MAPPING // P2";
+
+        laserBar.classList.remove('opacity-0');
+        laserBar.classList.add('animate-laser-sweep');
+        wireframeContainer.classList.remove('opacity-0');
+        hudOcularOverlays.classList.add('opacity-0');
+        p1AcquisitionRing.classList.add('opacity-0');
+        p4BottomTelemetry.classList.add('opacity-0');
+        p4BottomTelemetry.classList.remove('opacity-100');
+
+        metricVectors.textContent = "68 / 68 NODES";
+        metricSymmetry.textContent = "99.4%";
+        metricDilation.textContent = "3.2mm NORMAL";
+
+        soundEngine.playScanSweep();
+        if (speakAudio) {
+          soundEngine.speak("Subject acquired. Mapping cranial topography and orbital landmarks.");
+        }
+        break;
+
+      case 3:
+        bannerTag.textContent = "DEEP BIOMETRIC SEQUENCE ENGAGED // LEVEL-4";
+        bannerTitle.textContent = "RETINAL & NEURAL HANDSHAKE VERIFICATION";
+        bannerTitle.className = "text-sm sm:text-base font-orbitron font-extrabold text-hud-ice glow-cyan tracking-wider mt-0.5";
+        suitSysCode.textContent = "DEEP SCAN // P3";
+
+        laserBar.classList.remove('opacity-0');
+        laserBar.classList.add('animate-laser-sweep');
+        wireframeContainer.classList.remove('opacity-0');
+        hudOcularOverlays.classList.add('opacity-0');
+        p1AcquisitionRing.classList.add('opacity-0');
+        p4BottomTelemetry.classList.add('opacity-0');
+        p4BottomTelemetry.classList.remove('opacity-100');
+
+        metricVectors.textContent = "SYNCHRONIZING";
+        metricSymmetry.textContent = "ARC: 1.21 GW";
+        metricDilation.textContent = "VERIFYING 98.7%";
+
+        soundEngine.playRadarBlip();
+        if (speakAudio) {
+          soundEngine.speak("Conducting deep biometric telemetry and ocular pattern verification.");
+        }
+        break;
+
+      case 4:
+        bannerTag.textContent = "SUBJECT IDENTIFIED: MR. STARK // ACCESS GRANTED";
+        bannerTitle.textContent = "WELCOME BACK, SIR. ALL SYSTEMS NOMINAL.";
+        bannerTitle.className = "text-sm sm:text-base font-orbitron font-extrabold text-hud-cyan glow-cyan tracking-wider mt-0.5";
+        suitSysCode.textContent = "VISOR ACTIVE // P4";
+
+        laserBar.classList.add('opacity-0');
+        laserBar.classList.remove('animate-laser-sweep');
+        wireframeContainer.classList.remove('opacity-0');
+        hudOcularOverlays.classList.remove('opacity-0');
+        p1AcquisitionRing.classList.add('opacity-0');
+        p4BottomTelemetry.classList.remove('opacity-0');
+        p4BottomTelemetry.classList.add('opacity-100');
+
+        metricVectors.textContent = "DEFENSE: 100%";
+        metricSymmetry.textContent = "3.84 GW";
+        metricDilation.textContent = "THRUST: NOMINAL";
+
+        soundEngine.playConfirmationChime();
+        if (speakAudio) {
+          soundEngine.speak("Identity confirmed. Welcome back, sir. All suit systems are at your disposal.");
+        }
+
+        // TRIGGER THE SPECTACULAR SHOCKWAVE ON P4 COMPLETION / ACTIVATION
+        triggerCinematicShockwave();
+        break;
+    }
+  }
+
+  // Phase Button Manual Preview
+  phaseButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      soundEngine.initContext();
+      clearAllPhaseTimers();
+      const p = parseInt(btn.dataset.phase);
+      setPhase(p, true, true);
+    });
+  });
+
+  // Audio Mute/Unmute
+  btnAudioToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    soundEngine.initContext();
+    soundEngine.muted = !soundEngine.muted;
+    if (soundEngine.muted) {
+      iconSoundOn.classList.add('hidden');
+      iconSoundOff.classList.remove('hidden');
+    } else {
+      iconSoundOn.classList.remove('hidden');
+      iconSoundOff.classList.add('hidden');
+      soundEngine.playRadarBlip();
+    }
+  });
+
+  // ABORT PROTOCOL & CLEANUP IMPLEMENTATION
+  btnAbort.addEventListener('click', (e) => {
+    e.stopPropagation();
+    soundEngine.initContext();
+
+    soundEngine.playAbortTone();
+    soundEngine.stopAllAudio();
+    clearAllPhaseTimers();
+    stopCameraHardware();
+    stopSimulatedFeed();
+    cameraStandbyPlaceholder.classList.remove('opacity-0');
+    setCameraButtonState('BEFORE_PERMISSION');
+    hideModal();
+
+    try {
+      window.parent.postMessage({ type: 'ABORT_REQUEST', target: 'WHEEL', from: 'VISOR' }, '*');
+    } catch (msgErr) {
+      console.warn("postMessage warning:", msgErr);
+    }
+
+    bannerTag.textContent = "OVERRIDE TRIGGERED // PROTOCOL TERMINATED";
+    bannerTitle.textContent = "SEQUENCE ABORTED";
+    bannerTitle.className = "text-sm sm:text-base font-orbitron font-extrabold text-hud-alert glow-alert tracking-wider mt-0.5";
+    metricVectors.textContent = "DISENGAGED";
+    metricSymmetry.textContent = "RESET";
+    metricDilation.textContent = "INTERRUPTED";
+    suitSysCode.textContent = "ABORT // HALT";
+
+    laserBar.classList.add('opacity-0');
+    laserBar.classList.remove('animate-laser-sweep');
+    wireframeContainer.classList.add('opacity-0');
+    hudOcularOverlays.classList.add('opacity-0');
+    p1AcquisitionRing.classList.remove('opacity-0');
+    p4BottomTelemetry.classList.add('opacity-0');
+    shockwaveRings = [];
+    shockwaveSparks = [];
+
+    abortFlashCount = 12;
+
+    setTimeout(() => {
+      setPhase(1, true, false);
+    }, 2400);
+  });
+
+  // Ambient Holographic Particles
+  const particles = Array.from({ length: 32 }, () => ({
+    x: Math.random(),
+    y: Math.random(),
+    speed: 0.0008 + Math.random() * 0.0016,
+    size: 1 + Math.random() * 2,
+    opacity: 0.2 + Math.random() * 0.6
+  }));
+
+  // Canvas Render Loop (Particles + High-tech Shockwaves + Radial Energy Sparks)
+  function renderHUD(now) {
+    const width = canvas.getBoundingClientRect().width;
+    const height = canvas.getBoundingClientRect().height;
+    ctx.clearRect(0, 0, width, height);
+
+    // Abort flash effect
+    if (abortFlashCount > 0) {
+      ctx.fillStyle = `rgba(255, 59, 48, ${abortFlashCount * 0.04})`;
+      ctx.fillRect(0, 0, width, height);
+      abortFlashCount--;
+    }
+
+    // Ambient Holographic Particles
+    if (currentPhase >= 3) {
+      particles.forEach(p => {
+        p.y -= p.speed;
+        if (p.y < 0.15) p.y = 0.85;
+        ctx.fillStyle = `rgba(0, 240, 255, ${p.opacity * (currentPhase === 4 ? 0.7 : 0.4)})`;
+        ctx.beginPath();
+        ctx.arc(p.x * width, p.y * height, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    // Phase 3 Conic Radar Sweep
+    if (currentPhase === 3) {
+      const centerX = width * 0.5;
+      const centerY = height * 0.44;
+      const radius = Math.min(width, height) * 0.38;
+
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.rotate((now * 0.002) % (Math.PI * 2));
+      const grad = ctx.createConicGradient(0, 0, 0);
+      grad.addColorStop(0, 'rgba(0, 240, 255, 0.22)');
+      grad.addColorStop(0.18, 'rgba(0, 240, 255, 0.0)');
+      grad.addColorStop(1, 'rgba(0, 240, 255, 0.0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      ctx.font = '8px "Share Tech Mono"';
+      ctx.fillStyle = 'rgba(0, 240, 255, 0.65)';
+      for (let i = 0; i < 3; i++) {
+        const hex = '0x' + Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase();
+        ctx.fillText(hex, width * 0.12, height * 0.48 + (i * 18));
+      }
+    }
+
+    // CINEMATIC EXPANDING HOLOGRAPHIC SHOCKWAVE RINGS
+    if (shockwaveRings.length > 0) {
+      for (let i = shockwaveRings.length - 1; i >= 0; i--) {
+        const ring = shockwaveRings[i];
+        ring.radius += ring.speed;
+        ring.opacity = Math.max(0, 1 - (ring.radius / ring.maxRadius));
+
+        if (ring.opacity <= 0.01 || ring.radius >= ring.maxRadius) {
+          shockwaveRings.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(ring.x, ring.y, ring.radius, 0, Math.PI * 2);
+        ctx.lineWidth = ring.lineWidth * ring.opacity;
+        ctx.strokeStyle = ring.hueOffset;
+        ctx.globalAlpha = ring.opacity * 0.95;
+        ctx.shadowColor = '#00F0FF';
+        ctx.shadowBlur = 18 * ring.opacity;
+        ctx.stroke();
+
+        // Secondary subtle inner echo ring
+        ctx.beginPath();
+        ctx.arc(ring.x, ring.y, Math.max(0, ring.radius - 8), 0, Math.PI * 2);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(255, 255, 255, ' + (ring.opacity * 0.6) + ')';
+        ctx.shadowBlur = 8;
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    // 360-DEGREE HOLOGRAPHIC SPARK BURST DISPERSAL
+    if (shockwaveSparks.length > 0) {
+      for (let i = shockwaveSparks.length - 1; i >= 0; i--) {
+        const s = shockwaveSparks[i];
+        s.x += s.vx;
+        s.y += s.vy;
+        s.opacity -= s.decay;
+
+        if (s.opacity <= 0.02) {
+          shockwaveSparks.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = s.opacity;
+        ctx.strokeStyle = s.color;
+        ctx.fillStyle = s.color;
+        ctx.shadowColor = '#00F0FF';
+        ctx.shadowBlur = 12;
+
+        // Draw elongated velocity spark
+        const tailX = s.x - s.vx * (s.length * 0.15);
+        tailY = s.y - s.vy * (s.length * 0.15);
+
+        ctx.lineWidth = s.size;
+        ctx.beginPath();
+        ctx.moveTo(tailX, tailY);
+        ctx.lineTo(s.x, s.y);
+        ctx.stroke();
+
+        // Core bright point
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.size * 0.7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    animationFrameId = requestAnimationFrame(renderHUD);
+  }
+
+  // Initialize Default State (Strictly starts in Phase 1)
+  window.addEventListener('DOMContentLoaded', () => {
+    setCameraButtonState('BEFORE_PERMISSION');
+    // Ensure canvas dimensions are sync'd
+    resizeCanvas();
+    // Start strictly in Phase 1 without triggering Phase 4 shockwave
+    setPhase(1, false, false);
+    animationFrameId = requestAnimationFrame(renderHUD);
+  });
+</script>
+
+
+</body></html>
