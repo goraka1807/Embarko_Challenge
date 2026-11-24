@@ -164,19 +164,11 @@
 <line x1="220" x2="228" y1="268" y2="235"></line>
 <line x1="380" x2="372" y1="268" y2="235"></line>
 </g>
-<text fill="#7bd0ff" font-family="monospace" font-size="9" letter-spacing="0.28em" opacity="0.65" text-anchor="middle" x="300" y="264">SYS // 04 - 4-AXIS VECTOR LOCK</text>
 </svg>
 </div>
 </div>
 <!-- Radial Cyan Gradient Glow -->
 <div class="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_50%,rgba(0,218,243,0.14)_0%,rgba(4,8,13,0)_70%)]"></div>
-<!-- Active Target Feedback HUD Banner -->
-<div class="absolute top-[8%] left-1/2 -translate-x-1/2 z-20 pointer-events-none text-center w-full px-4" id="hud-feedback-container">
-<div class="inline-flex flex-col items-center">
-<span class="font-label-sm text-[10px] tracking-[0.25em] text-primary-container/90 uppercase" id="hud-title">DRAG REACTOR TO DESTINATION</span>
-<span class="font-body-md text-[11px] text-on-surface-variant/80 tracking-wide mt-0.5" id="hud-subtitle">4-Direction Cardinal Engage</span>
-</div>
-</div>
 <!-- 400x400 Master Wheel Canvas Container -->
 <div class="relative w-[370px] h-[370px] sm:w-[380px] sm:h-[380px] flex items-center justify-center select-none" id="radial-wheel">
 <!-- SVG Concentric Rings, Crosshairs & Draggable Arc Core Graphic -->
@@ -434,9 +426,7 @@
       const targetBeam = document.getElementById('energy-target-beam');
       const cardinalNodes = Array.from(document.querySelectorAll('.cardinal-node'));
 
-      const hudTitle = document.getElementById('hud-title');
-      const hudSub = document.getElementById('hud-subtitle');
-      const statusIndicator = document.getElementById('drag-status-indicator');
+            const statusIndicator = document.getElementById('drag-status-indicator');
       const actionToast = document.getElementById('action-toast');
       const toastTitle = document.getElementById('toast-title');
       const toastMsg = document.getElementById('toast-msg');
@@ -588,9 +578,7 @@
         toastTitle.textContent = config.title;
         toastMsg.textContent = config.msg;
 
-        hudTitle.textContent = `${action} ENGAGED`;
-        hudTitle.className = 'font-label-sm text-[11px] tracking-[0.3em] text-white font-bold uppercase drop-shadow-[0_0_14px_#00daf3]';
-        hudSub.textContent = 'Subsystem sequence online';
+        
         statusIndicator.textContent = `ENGAGED // ${action}`;
         statusIndicator.className = 'font-label-sm text-[10px] tracking-[0.18em] text-primary-container font-bold';
 
@@ -601,9 +589,7 @@
         toastTimeout = setTimeout(() => {
           actionToast.classList.remove('opacity-100', 'translate-y-0');
           actionToast.classList.add('opacity-0', 'translate-y-2');
-          hudTitle.textContent = 'DRAG REACTOR TO DESTINATION';
-          hudTitle.className = 'font-label-sm text-[10px] tracking-[0.25em] text-primary-container/90 uppercase';
-          hudSub.textContent = '4-Direction Cardinal Engage';
+          
           statusIndicator.textContent = 'STANDBY';
           statusIndicator.className = 'font-label-sm text-[10px] tracking-[0.18em] text-secondary/70';
         }, 3200);
@@ -663,10 +649,7 @@
         coreGroup.classList.add('core-dragging');
         tetherGroup.style.opacity = '1';
 
-        hudTitle.textContent = 'VECTORING ARC REACTOR';
-        hudTitle.className = 'font-label-sm text-[10px] tracking-[0.25em] text-primary-container font-semibold uppercase';
-        hudSub.textContent = 'Aim toward ARMOURY, WORKBENCH, FLIGHT or VISOR';
-
+        
         updateTransforms(0, 0, 1.12, false);
       });
 

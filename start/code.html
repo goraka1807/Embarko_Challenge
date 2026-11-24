@@ -187,11 +187,6 @@
 <span class="text-neutral-700">|</span>
 <span class="text-neutral-500 text-[9px] tracking-[0.22em]" id="sysArchitecture">MK-LXXXV HYBRID OS</span>
 </div>
-<!-- Navigation Transition Prompt Hint to Screen 02 -->
-<div class="transition-opacity duration-700 flex items-center space-x-1.5 text-[9px] font-label tracking-[0.25em] text-cyan-400/80 cursor-pointer pt-0.5 opacity-100" id="nextScreenPrompt">
-<span>PROCEED TO HUD INTERFACE</span>
-<span class="material-symbols-outlined text-[13px] animate-pulse">arrow_forward</span>
-</div>
 </footer>
 </main>
 <script>
@@ -211,7 +206,6 @@
   const statusLabel = document.getElementById('statusLabel');
   const chargePercentage = document.getElementById('chargePercentage');
   const subPrompt = document.getElementById('subPrompt');
-  const nextScreenPrompt = document.getElementById('nextScreenPrompt');
   const soundToggle = document.getElementById('soundToggle');
   const soundIcon = document.getElementById('soundIcon');
   const specularFlashes = document.getElementById('specularFlashes');
@@ -699,6 +693,7 @@
   let currentProgress = 0.0;
   let animationFrameId = null;
   let isFullyOnline = false;
+  let hasNavigated = false;
 
   function updateProgressUI(pct) {
     const offset = CIRCUMFERENCE - (pct / 100) * CIRCUMFERENCE;
@@ -869,16 +864,13 @@
       progressRing.classList.remove('stroke-cyan-400/60');
       progressRing.classList.add('stroke-cyan-300', 'drop-shadow-[0_0_8px_rgba(0,229,255,0.8)]');
 
-      nextScreenPrompt.classList.remove('opacity-0', 'pointer-events-none');
-      nextScreenPrompt.classList.add('opacity-100');
-
       applyElectricJitter(0);
     }
   }
 
   // Sequencer Initiation
   function startBootSequence() {
-    if (isBooting) return;
+    if (isFullyOnline || isBooting) return;
     isBooting = true;
     initAudio();
 
@@ -908,10 +900,27 @@
         animationFrameId = requestAnimationFrame(step);
       } else {
         isBooting = false;
-        triggerShockwave();
-        playSubBassImpact();
-        playHarmonicChord();
-        if (navigator.vibrate) navigator.vibrate([40, 70, 110]);
+  isFullyOnline = true;
+
+  triggerShockwave();
+  playSubBassImpact();
+  playHarmonicChord();
+
+  if (navigator.vibrate) navigator.vibrate([40, 70, 110]);
+
+  // Allow the reactor's final stabilization effect to finish,
+  // then automatically transition to the Command Wheel.
+  setTimeout(() => {
+  if (hasNavigated) return;
+  hasNavigated = true;
+
+  if (window.JarvisBridge) {
+    window.JarvisBridge.activationComplete({
+      from: 'start',
+      activated: true
+    });
+  }
+}, 1200);
       }
     }
     animationFrameId = requestAnimationFrame(step);
@@ -930,8 +939,6 @@
     progressRing.classList.remove('stroke-cyan-300', 'drop-shadow-[0_0_8px_rgba(0,229,255,0.8)]');
     subPrompt.textContent = "TAP CORE TO INITIALIZE";
     subPrompt.className = "text-neutral-600 transition-colors duration-300 tracking-[0.22em] text-[9px]";
-    nextScreenPrompt.classList.add('opacity-0', 'pointer-events-none');
-    nextScreenPrompt.classList.remove('opacity-100');
 
     if (navigator.vibrate) navigator.vibrate(20);
     playElectricZap(0.35);
@@ -939,22 +946,20 @@
 
   // Interactive handler on reactor or screen tap
   reactorAssembly.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (!isBooting && !isFullyOnline) {
-      startBootSequence();
-    } else if (isFullyOnline) {
-      resetSequence();
-    }
-  });
+  e.stopPropagation();
+
+  if (!isBooting && !isFullyOnline) {
+    startBootSequence();
+  }
+});
 
   masterBody.addEventListener('click', (e) => {
-    if (e.target.closest('#soundToggle') || e.target.closest('#nextScreenPrompt')) return;
-    if (!isBooting && !isFullyOnline) {
-      startBootSequence();
-    } else if (isFullyOnline) {
-      resetSequence();
-    }
-  });
+  if (e.target.closest('#soundToggle')) return;
+
+  if (!isBooting && !isFullyOnline) {
+    startBootSequence();
+  }
+});
 
   // Autoplay trigger shortly after load
   window.addEventListener('DOMContentLoaded', () => {
@@ -966,18 +971,6 @@
     }, 700);
   });
 })();
-
-document.addEventListener('DOMContentLoaded', () => {
-  const proceed = document.getElementById('nextScreenPrompt');
-  if (proceed) {
-    proceed.addEventListener('click', (event) => {
-      event.stopPropagation();
-      if (window.JarvisBridge) {
-        window.JarvisBridge.activationComplete({ from: 'start', activated: true });
-      }
-    });
-  }
-});
 
 </script>
 <script src="../screen-bridge.js"></script>
