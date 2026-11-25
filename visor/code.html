@@ -78,13 +78,13 @@
 <!-- 1. LIVE CAMERA FEED & FALLBACK SYNTHETIC FEEDS (Z-INDEX 1) -->
 <div class="absolute inset-0 z-1 overflow-hidden pointer-events-none bg-transparent" id="camera-feed-container">
 <!-- Live WebRTC Video Element -->
-<video autoplay="" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 opacity-0 pointer-events-none" id="cameraVideo" muted="" playsinline="" style="z-index: 1; transform: scaleX(-1); filter: brightness(1.4) contrast(1.15) saturate(1.1);"></video>
+<video autoplay="" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 opacity-0 pointer-events-none" id="cameraVideo" muted="" playsinline="" style="z-index: 1; transform: scaleX(-1);"></video>
 <!-- Synthetic / Simulated Biometric Feed Canvas (Active on Error or Standby) -->
 <canvas class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 opacity-0 pointer-events-none" height="884" id="simulated-feed-canvas" style="z-index: 1;" width="390"></canvas>
 <!-- Standby Dark Vignette Background Layer -->
 <div class="absolute inset-0 bg-gradient-to-b from-black/90 via-[#010a14]/90 to-black/95 transition-opacity duration-700 opacity-100 pointer-events-none" id="camera-standby-placeholder" style="z-index: 2;"></div>
 <!-- Radial Vignette for seamless cinematic edge blending -->
-<div class="absolute inset-0 camera-vignette pointer-events-none opacity-40" style="z-index: 3; background: radial-gradient(circle at 50% 46%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.3) 85%, rgba(0, 0, 0, 0.8) 98%);"></div>
+<div class="absolute inset-0 pointer-events-none opacity-0" style="z-index: 3;"></div>
 <!-- Scanline texture -->
 <div class="absolute inset-0 scanlines pointer-events-none opacity-40" style="z-index: 4;"></div>
 <!-- Animated Biometric Scanning Laser Bar (Phases 2 & 3) -->
@@ -122,7 +122,7 @@
 <span class="text-[9px] tracking-[0.24em] font-orbitron font-extrabold text-hud-cyan glow-cyan animate-pulse">JARVIS</span>
 </div>
 <!-- Crosshairs -->
-<div class="absolute inset-0 flex items-center justify-center">
+<div id="ocular-crosshairs" class="absolute inset-0 flex items-center justify-center transition-opacity duration-300">
 <div class="w-full h-[1px] bg-gradient-to-r from-transparent via-hud-cyan/50 to-transparent"></div>
 <div class="h-full w-[1px] bg-gradient-to-b from-transparent via-hud-cyan/50 to-transparent absolute"></div>
 </div>
@@ -794,7 +794,7 @@
       };
 
       videoElem.classList.remove('opacity-0');
-      videoElem.classList.add('opacity-90');
+      videoElem.classList.add('opacity-100');
       cameraStandbyPlaceholder.classList.add('opacity-0');
 
       setCameraButtonState('CAMERA_ACTIVE');
@@ -832,7 +832,7 @@
       cameraStream = null;
     }
     videoElem.srcObject = null;
-    videoElem.classList.remove('opacity-90');
+    videoElem.classList.remove('opacity-100');
     videoElem.classList.add('opacity-0');
   }
 
@@ -885,6 +885,7 @@
   const laserBar = document.getElementById('laser-bar');
   const wireframeContainer = document.getElementById('wireframe-container');
   const hudOcularOverlays = document.getElementById('hud-ocular-overlays');
+  const ocularCrosshairs = document.getElementById('ocular-crosshairs');
   const p1AcquisitionRing = document.getElementById('p1-acquisition-ring');
   const metricVectors = document.getElementById('metric-vectors');
   const metricSymmetry = document.getElementById('metric-symmetry');
@@ -1014,6 +1015,9 @@
 
   function setPhase(phaseNum, userTriggered = false, speakAudio = true) {
     currentPhase = phaseNum;
+
+    // Hide center crosshairs only during Phase 4
+    ocularCrosshairs.classList.toggle('opacity-0', currentPhase === 4);
 
     // Update pill buttons
     phaseButtons.forEach(btn => {
